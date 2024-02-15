@@ -1,8 +1,8 @@
-# Certificate Generator
+# 🔐 Certificate Generator
 
-An API and a Maven plugin to generate certificates.
+A Java API, a Junit 5 extension and a Maven plugin to generate (self-signed) certificates.
 The main goal is to provide an easy way to generate self-signed certificates for testing purposes.
-Thus, the test can used the generated certificates to test the application.
+Thus, the test can used the generated certificates to verify the application.
 
 ## Features
 
@@ -38,7 +38,7 @@ Here is the list of generated files:
 - 🔐  Client Key Store File: $DIR/$NAME-client-keystore.jks (to be deployed on the client-side)
 - 🔓  Client Trust Store File: $DIR/$NAME-client-truststore.jks (to be deployed on the client-side, contains the server certificate)
 
-** Format: PEM and mTLS**
+**Format: PEM and mTLS**
 
 - 🔑  Key File: $DIR/$NAME-key.pem (to be deployed on the server-side)
 - 📜  Cert File: $DIR/$NAME-cert.pem (to be deployed on the server-side)
