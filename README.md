@@ -22,9 +22,9 @@ Here is the list of generated files:
 
 **Format: PEM and server only (no mTLS)**
 
-- 🔑  Key File: $DIR/$NAME-key.pem
-- 📜  Cert File: $DIR/$NAME-cert.pem
-- 🔓  Trust Store File: $DIR/$NAME-truststore.pem (to be deployed on the client-side)
+- 🔑  Key File: $DIR/$NAME.key
+- 📜  Cert File: $DIR/$NAME.crt
+- 🔓  Trust Store File: $DIR/$NAME-ca.crt (to be deployed on the client-side)
 
 **Format: PKCS12 and server only (no mTLS)**
 
@@ -40,12 +40,12 @@ Here is the list of generated files:
 
 **Format: PEM and mTLS**
 
-- 🔑  Key File: $DIR/$NAME-key.pem (to be deployed on the server-side)
-- 📜  Cert File: $DIR/$NAME-cert.pem (to be deployed on the server-side)
-- 🔓  Server Trust Store File: $DIR/$NAME-server-truststore.pem (to be deployed on the server-side, contains the client certificate)
-- 🔑  Client Key File: $DIR/$NAME-client-key.pem (to be deployed on the client-side)
-- 📜  Client Cert File: $DIR/$NAME-client-cert.pem (to be deployed on the client-side)
-- 🔓  Client Trust Store File: $DIR/$NAME-client-truststore.pem (to be deployed on the client-side, contains the server certificate)
+- 🔑  Key File: $DIR/$NAME.key (to be deployed on the server-side)
+- 📜  Cert File: $DIR/$NAME.crt (to be deployed on the server-side)
+- 🔓  Server Trust Store File: $DIR/$NAME-server-ca.crt (to be deployed on the server-side, contains the client certificate)
+- 🔑  Client Key File: $DIR/$NAME-client.key (to be deployed on the client-side)
+- 📜  Client Cert File: $DIR/$NAME-client.crt (to be deployed on the client-side)
+- 🔓  Client Trust Store File: $DIR/$NAME-client-ca.crt (to be deployed on the client-side, contains the server certificate)
 
 
 **Format: PKCS12 and mTLS**

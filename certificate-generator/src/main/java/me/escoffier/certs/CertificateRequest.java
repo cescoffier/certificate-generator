@@ -65,7 +65,7 @@ public final class CertificateRequest {
             throw new IllegalArgumentException("The name of the certificate must be set");
         }
         if (formats.isEmpty()) {
-            throw new IllegalArgumentException("At least one format must be set");
+            formats.add(Format.PEM);
         }
         if (cn == null || cn.isEmpty()) {
             cn = "localhost";

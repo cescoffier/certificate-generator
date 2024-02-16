@@ -41,12 +41,12 @@ public class CertificateGenerator {
 
             for (Format format : request.formats()) {
                 if (format == Format.PEM) {
-                    File certFile = new File(root, request.name() + "-cert.pem");
-                    File keyFile = new File(root, request.name() + "-key.pem");
-                    File trustfile = new File(root, request.name() + (client!=null ? "-client" : "") + "-truststore.pem");
-                    File clientCertFile = new File(root, request.name() + "-client-cert.pem");
-                    File clientKeyFile = new File(root, request.name() + "-client-key.pem");
-                    File serverTrustfile = new File(root, request.name() + "-server-truststore.pem");
+                    File certFile = new File(root, request.name() + ".crt");
+                    File keyFile = new File(root, request.name() + ".key");
+                    File trustfile = new File(root, request.name() + (client!=null ? "-client" : "") + "-ca.crt");
+                    File clientCertFile = new File(root, request.name() + "-client.crt");
+                    File clientKeyFile = new File(root, request.name() + "-client.key");
+                    File serverTrustfile = new File(root, request.name() + "-server-ca.crt");
 
                     writeCertificateToPEM(certificate, certFile);
                     writePrivateKeyToPem(keyPair.getPrivate(), keyFile);

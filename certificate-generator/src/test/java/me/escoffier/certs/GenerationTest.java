@@ -67,9 +67,9 @@ public class GenerationTest {
         new CertificateGenerator(tempDir).generate(request);
 
         KeyCertOptions serverOptions = new PemKeyCertOptions()
-                .addKeyPath(new File(tempDir.toFile(), "test-key.pem").getAbsolutePath())
-                .addCertPath(new File(tempDir.toFile(), "test-cert.pem").getAbsolutePath());
-        TrustOptions clientOptions = new PemTrustOptions().addCertPath(new File(tempDir.toFile(), "test-truststore.pem").getAbsolutePath());
+                .addKeyPath(new File(tempDir.toFile(), "test.key").getAbsolutePath())
+                .addCertPath(new File(tempDir.toFile(), "test.crt").getAbsolutePath());
+        TrustOptions clientOptions = new PemTrustOptions().addCertPath(new File(tempDir.toFile(), "test-ca.crt").getAbsolutePath());
         var server = VertxHttpHelper.createHttpServer(vertx, serverOptions);
         var response = VertxHttpHelper.createHttpClientAndInvoke(vertx, server, clientOptions);
 
@@ -102,7 +102,7 @@ public class GenerationTest {
         new CertificateGenerator(tempDir).generate(request);
 
         KeyCertOptions serverOptions = new PfxOptions().setPath(new File(tempDir.toFile(), "test-keystore.p12").getAbsolutePath()).setPassword("password");
-        TrustOptions clientOptions = new PemTrustOptions().addCertPath(new File(tempDir.toFile(), "test-truststore.pem").getAbsolutePath());
+        TrustOptions clientOptions = new PemTrustOptions().addCertPath(new File(tempDir.toFile(), "test-ca.crt").getAbsolutePath());
         var server = VertxHttpHelper.createHttpServer(vertx, serverOptions);
         var response = VertxHttpHelper.createHttpClientAndInvoke(vertx, server, clientOptions);
 
@@ -118,14 +118,14 @@ public class GenerationTest {
         new CertificateGenerator(tempDir).generate(request);
 
         KeyCertOptions serverOptions = new PemKeyCertOptions()
-                .addKeyPath(new File(tempDir.toFile(), "test-key.pem").getAbsolutePath())
-                .addCertPath(new File(tempDir.toFile(), "test-cert.pem").getAbsolutePath());
-        PemTrustOptions serverTrustOptions = new PemTrustOptions().addCertPath(new File(tempDir.toFile(), "test-server-truststore.pem").getAbsolutePath());
+                .addKeyPath(new File(tempDir.toFile(), "test.key").getAbsolutePath())
+                .addCertPath(new File(tempDir.toFile(), "test.crt").getAbsolutePath());
+        PemTrustOptions serverTrustOptions = new PemTrustOptions().addCertPath(new File(tempDir.toFile(), "test-server-ca.crt").getAbsolutePath());
 
         KeyCertOptions clientOptions = new PemKeyCertOptions()
-                .addKeyPath(new File(tempDir.toFile(), "test-client-key.pem").getAbsolutePath())
-                .addCertPath(new File(tempDir.toFile(), "test-client-cert.pem").getAbsolutePath());
-        TrustOptions clientTrustOptions = new PemTrustOptions().addCertPath(new File(tempDir.toFile(), "test-client-truststore.pem").getAbsolutePath());
+                .addKeyPath(new File(tempDir.toFile(), "test-client.key").getAbsolutePath())
+                .addCertPath(new File(tempDir.toFile(), "test-client.crt").getAbsolutePath());
+        TrustOptions clientTrustOptions = new PemTrustOptions().addCertPath(new File(tempDir.toFile(), "test-client-ca.crt").getAbsolutePath());
         var server = VertxHttpHelper.createHttpServerWithMutualAuth(vertx, serverOptions, serverTrustOptions);
         var response = VertxHttpHelper.createHttpClientWithMutualAuthAndInvoke(vertx, server, clientOptions, clientTrustOptions);
 
@@ -194,9 +194,9 @@ public class GenerationTest {
         TrustOptions serverTrustOptions = new JksOptions().setPath(new File(tempDir.toFile(), "test-server-truststore.jks").getAbsolutePath()).setPassword("secret").setAlias("alias");
 
         KeyCertOptions clientOptions = new PemKeyCertOptions()
-                .addKeyPath(new File(tempDir.toFile(), "test-client-key.pem").getAbsolutePath())
-                .addCertPath(new File(tempDir.toFile(), "test-client-cert.pem").getAbsolutePath());
-        TrustOptions clientTrustOptions = new PemTrustOptions().addCertPath(new File(tempDir.toFile(), "test-client-truststore.pem").getAbsolutePath());
+                .addKeyPath(new File(tempDir.toFile(), "test-client.key").getAbsolutePath())
+                .addCertPath(new File(tempDir.toFile(), "test-client.crt").getAbsolutePath());
+        TrustOptions clientTrustOptions = new PemTrustOptions().addCertPath(new File(tempDir.toFile(), "test-client-ca.crt").getAbsolutePath());
 
         var server = VertxHttpHelper.createHttpServerWithMutualAuth(vertx, serverOptions, serverTrustOptions);
         var response = VertxHttpHelper.createHttpClientWithMutualAuthAndInvoke(vertx, server, clientOptions, clientTrustOptions);
