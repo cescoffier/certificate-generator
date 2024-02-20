@@ -110,8 +110,8 @@ public class CertificateGenerator {
                         writeTrustStoreToPKCS12(Map.of(request.getAlias(), clientCertificate), serverTrustStoreFile, request.password().toCharArray());
                     }
 
-
                     LOGGER.log(System.Logger.Level.INFO, "⭐  PCKS12 Keystore and truststore generated successfully!");
+                    LOGGER.log(System.Logger.Level.INFO, "\uD83D\uDD10  Key Store File: " + keyStoreFile.getAbsolutePath());
                     if (client != null) {
                         LOGGER.log(System.Logger.Level.INFO, "\uD83D\uDD13  Server Trust Store File: " + serverTrustStoreFile.getAbsolutePath());
                         LOGGER.log(System.Logger.Level.INFO, "\uD83D\uDD10  Client Key Store File: " + clientKeyStoreFile.getAbsolutePath());
