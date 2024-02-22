@@ -26,4 +26,8 @@ public @interface Certificates {
      */
     Certificate[] certificates();
 
+    /**
+     * Whether to replace the certificates if they already exist.
+     */
+    boolean replaceIfExists() default false;
 }

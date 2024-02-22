@@ -21,7 +21,7 @@ public class CertificateGenerationExtension implements BeforeAllCallback {
             String baseDir = annotation.baseDir();
             File file = new File(baseDir);
             file.mkdirs();
-            CertificateGenerator generator = new CertificateGenerator(file.toPath());
+            CertificateGenerator generator = new CertificateGenerator(file.toPath(), annotation.replaceIfExists());
 
             CertificateRequest request = new CertificateRequest()
                     .withName(certificate.name())

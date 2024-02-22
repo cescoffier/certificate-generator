@@ -14,13 +14,16 @@ public class CertificateGenerator {
     final File root;
 
     static System.Logger LOGGER = System.getLogger(CertificateGenerator.class.getName());
+    private final boolean replaceIfExists;
 
-    public CertificateGenerator(Path tempDir) {
-        root = tempDir.toFile();
+    public CertificateGenerator(Path tempDir, boolean replaceIfExists) {
+        this.replaceIfExists = replaceIfExists;
+        this.root = tempDir.toFile();
     }
 
     public CertificateGenerator() {
         root = new File(".");
+        replaceIfExists = false;
     }
 
     public void generate(CertificateRequest request) throws Exception {
@@ -43,19 +46,31 @@ public class CertificateGenerator {
                 if (format == Format.PEM) {
                     File certFile = new File(root, request.name() + ".crt");
                     File keyFile = new File(root, request.name() + ".key");
-                    File trustfile = new File(root, request.name() + (client!=null ? "-client" : "") + "-ca.crt");
+                    File trustfile = new File(root, request.name() + (client != null ? "-client" : "") + "-ca.crt");
                     File clientCertFile = new File(root, request.name() + "-client.crt");
                     File clientKeyFile = new File(root, request.name() + "-client.key");
                     File serverTrustfile = new File(root, request.name() + "-server-ca.crt");
 
-                    writeCertificateToPEM(certificate, certFile);
-                    writePrivateKeyToPem(keyPair.getPrivate(), keyFile);
-                    writeTruststoreToPem(List.of(certificate), trustfile);
+                    if (replaceIfExists  || !certFile.isFile()) {
+                        writeCertificateToPEM(certificate, certFile);
+                    }
+                    if (replaceIfExists || ! keyFile.isFile()) {
+                        writePrivateKeyToPem(keyPair.getPrivate(), keyFile);
+                    }
+                    if (replaceIfExists || ! trustfile.isFile()) {
+                        writeTruststoreToPem(List.of(certificate), trustfile);
+                    }
 
                     if (client != null) {
-                        writeCertificateToPEM(clientCertificate, clientCertFile);
-                        writePrivateKeyToPem(clientKeyPair.getPrivate(), clientKeyFile);
-                        writeTruststoreToPem(List.of(clientCertificate), serverTrustfile);
+                        if (replaceIfExists || !clientCertFile.isFile()) {
+                            writeCertificateToPEM(clientCertificate, clientCertFile);
+                        }
+                        if (replaceIfExists || !clientKeyFile.isFile()) {
+                            writePrivateKeyToPem(clientKeyPair.getPrivate(), clientKeyFile);
+                        }
+                        if (replaceIfExists || !serverTrustfile.isFile()) {
+                            writeTruststoreToPem(List.of(clientCertificate), serverTrustfile);
+                        }
                     }
 
                     LOGGER.log(System.Logger.Level.INFO, "⭐ PEM Certificates, keystore, and truststore generated successfully!");
@@ -71,18 +86,26 @@ public class CertificateGenerator {
                     }
 
                 } else if (format == Format.JKS) {
-                    File keyStoreFile = new File(root,  request.name() + "-keystore." + format.extension());
-                    File trustStoreFile = new File(root, request.name() + (client!=null ? "-client" : "") + "-truststore." + format.extension());
+                    File keyStoreFile = new File(root, request.name() + "-keystore." + format.extension());
+                    File trustStoreFile = new File(root, request.name() + (client != null ? "-client" : "") + "-truststore." + format.extension());
 
-                    File clientKeyStoreFile = new File(root,  request.name() + "-client-keystore." + format.extension());
-                    File serverTrustStoreFile = new File(root,  request.name() + "-server-truststore." + format.extension());
+                    File clientKeyStoreFile = new File(root, request.name() + "-client-keystore." + format.extension());
+                    File serverTrustStoreFile = new File(root, request.name() + "-server-truststore." + format.extension());
 
-                    writePrivateKeyAndCertificateToJKS(certificate, keyPair, keyStoreFile, request.password().toCharArray(), request.getAlias());
-                    writeTrustStoreToJKS(Map.of(request.getAlias(), certificate), trustStoreFile, request.password().toCharArray());
+                    if (replaceIfExists || !keyStoreFile.isFile()) {
+                        writePrivateKeyAndCertificateToJKS(certificate, keyPair, keyStoreFile, request.password().toCharArray(), request.getAlias());
+                    }
+                    if (replaceIfExists || !trustStoreFile.isFile()) {
+                        writeTrustStoreToJKS(Map.of(request.getAlias(), certificate), trustStoreFile, request.password().toCharArray());
+                    }
 
                     if (client != null) {
-                        writePrivateKeyAndCertificateToJKS(clientCertificate, clientKeyPair, clientKeyStoreFile, request.password().toCharArray(), request.getAlias());
-                        writeTrustStoreToJKS(Map.of(request.getAlias(), clientCertificate), serverTrustStoreFile, request.password().toCharArray());
+                        if (replaceIfExists || !clientKeyStoreFile.isFile()) {
+                            writePrivateKeyAndCertificateToJKS(clientCertificate, clientKeyPair, clientKeyStoreFile, request.password().toCharArray(), request.getAlias());
+                        }
+                        if (replaceIfExists || !serverTrustStoreFile.isFile()) {
+                            writeTrustStoreToJKS(Map.of(request.getAlias(), clientCertificate), serverTrustStoreFile, request.password().toCharArray());
+                        }
                     }
 
                     LOGGER.log(System.Logger.Level.INFO, "⭐  JKS Keystore and truststore generated successfully!");
@@ -96,18 +119,26 @@ public class CertificateGenerator {
                         LOGGER.log(System.Logger.Level.INFO, "\uD83D\uDD13  Trust Store File: " + trustStoreFile.getAbsolutePath());
                     }
                 } else if (format == Format.PKCS12) {
-                    File keyStoreFile = new File(root,  request.name() + "-keystore." + format.extension());
-                    File trustStoreFile = new File(root, request.name() + (client!=null ? "-client" : "") + "-truststore." + format.extension());
+                    File keyStoreFile = new File(root, request.name() + "-keystore." + format.extension());
+                    File trustStoreFile = new File(root, request.name() + (client != null ? "-client" : "") + "-truststore." + format.extension());
 
-                    File clientKeyStoreFile = new File(root,  request.name() + "-client-keystore." + format.extension());
-                    File serverTrustStoreFile = new File(root,  request.name() + "-server-truststore." + format.extension());
+                    File clientKeyStoreFile = new File(root, request.name() + "-client-keystore." + format.extension());
+                    File serverTrustStoreFile = new File(root, request.name() + "-server-truststore." + format.extension());
 
-                    writePrivateKeyAndCertificateToPKCS12(certificate, keyPair, keyStoreFile, request.password().toCharArray(), request.getAlias());
-                    writeTrustStoreToPKCS12(Map.of(request.getAlias(), certificate), trustStoreFile, request.password().toCharArray());
+                    if (replaceIfExists || !keyStoreFile.isFile()) {
+                        writePrivateKeyAndCertificateToPKCS12(certificate, keyPair, keyStoreFile, request.password().toCharArray(), request.getAlias());
+                    }
+                    if (replaceIfExists || !trustStoreFile.isFile()) {
+                        writeTrustStoreToPKCS12(Map.of(request.getAlias(), certificate), trustStoreFile, request.password().toCharArray());
+                    }
 
                     if (client != null) {
-                        writePrivateKeyAndCertificateToPKCS12(clientCertificate, clientKeyPair, clientKeyStoreFile, request.password().toCharArray(), request.getAlias());
-                        writeTrustStoreToPKCS12(Map.of(request.getAlias(), clientCertificate), serverTrustStoreFile, request.password().toCharArray());
+                        if (replaceIfExists || !clientKeyStoreFile.isFile()) {
+                            writePrivateKeyAndCertificateToPKCS12(clientCertificate, clientKeyPair, clientKeyStoreFile, request.password().toCharArray(), request.getAlias());
+                        }
+                        if (replaceIfExists || !serverTrustStoreFile.isFile()) {
+                            writeTrustStoreToPKCS12(Map.of(request.getAlias(), clientCertificate), serverTrustStoreFile, request.password().toCharArray());
+                        }
                     }
 
                     LOGGER.log(System.Logger.Level.INFO, "⭐  PCKS12 Keystore and truststore generated successfully!");
