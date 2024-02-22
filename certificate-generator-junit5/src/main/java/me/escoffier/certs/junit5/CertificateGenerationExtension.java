@@ -4,6 +4,7 @@ import me.escoffier.certs.CertificateGenerator;
 import me.escoffier.certs.CertificateRequest;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.platform.commons.util.AnnotationUtils;
 
 import java.io.File;
 import java.time.Duration;
@@ -12,11 +13,11 @@ import java.util.Arrays;
 public class CertificateGenerationExtension implements BeforeAllCallback {
     @Override
     public void beforeAll(ExtensionContext extensionContext) throws Exception {
-        Certificates annotation = extensionContext.getRequiredTestClass().getAnnotation(Certificates.class);
-        if (annotation == null) {
+        var maybe = AnnotationUtils.findAnnotation(extensionContext.getRequiredTestClass(), Certificates.class);
+        if (maybe.isEmpty()) {
             return;
         }
-
+        var annotation = maybe.get();
         for (Certificate certificate : annotation.certificates()) {
             String baseDir = annotation.baseDir();
             File file = new File(baseDir);
