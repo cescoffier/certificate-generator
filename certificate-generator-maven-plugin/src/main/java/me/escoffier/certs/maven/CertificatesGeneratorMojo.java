@@ -23,6 +23,9 @@ public class CertificatesGeneratorMojo extends AbstractMojo {
     @Parameter(property = "certificate-generator.outputDirectory", defaultValue = "${project.build.directory}/certificates")
     private String outputDirectory;
 
+    @Parameter(property = "certificate-generator.replaceIfExists", defaultValue = "false")
+    private boolean replaceIfExists;
+
     @Override
     public void execute() throws MojoExecutionException {
         getLog().info("Generating certificates");
@@ -33,7 +36,7 @@ public class CertificatesGeneratorMojo extends AbstractMojo {
         }
 
         try {
-            CertificateGenerator generator = new CertificateGenerator(new File(outputDirectory).toPath());
+            CertificateGenerator generator = new CertificateGenerator(new File(outputDirectory).toPath(), replaceIfExists);
             for (CertificateRequestParameter request : certificates) {
                 CertificateRequest cr = new CertificateRequest()
                         .withName(request.getName())
