@@ -4,6 +4,7 @@ import java.io.File;
 import java.nio.file.Path;
 import java.security.KeyPair;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -26,8 +27,9 @@ public class CertificateGenerator {
         replaceIfExists = false;
     }
 
-    public void generate(CertificateRequest request) throws Exception {
+    public List<CertificateFiles> generate(CertificateRequest request) throws Exception {
         request.validate();
+        List<CertificateFiles> certificateFiles = new ArrayList<>();
         try {
             KeyAndCertificateHolder server = new KeyAndCertificateHolder(request.getCN(), request.getDuration());
             KeyPair keyPair = server.keys();
@@ -44,20 +46,23 @@ public class CertificateGenerator {
 
             for (Format format : request.formats()) {
                 if (format == Format.PEM) {
-                    File certFile = new File(root, request.name() + ".crt");
-                    File keyFile = new File(root, request.name() + ".key");
-                    File trustfile = new File(root, request.name() + (client != null ? "-client" : "") + "-ca.crt");
-                    File clientCertFile = new File(root, request.name() + "-client.crt");
-                    File clientKeyFile = new File(root, request.name() + "-client.key");
-                    File serverTrustfile = new File(root, request.name() + "-server-ca.crt");
+                    PemCertificateFiles files = new PemCertificateFiles(root.toPath(), request.name(), request.client());
+                    certificateFiles.add(files);
 
-                    if (replaceIfExists  || !certFile.isFile()) {
+                    File certFile = files.certFile().toFile();
+                    File keyFile = files.keyFile().toFile();
+                    File trustfile = files.trustFile().toFile();
+                    File clientCertFile = files.clientCertFile().toFile();
+                    File clientKeyFile = files.clientKeyFile().toFile();
+                    File serverTrustfile = files.serverTrustFile().toFile();
+
+                    if (replaceIfExists || !certFile.isFile()) {
                         writeCertificateToPEM(certificate, certFile);
                     }
-                    if (replaceIfExists || ! keyFile.isFile()) {
+                    if (replaceIfExists || !keyFile.isFile()) {
                         writePrivateKeyToPem(keyPair.getPrivate(), keyFile);
                     }
-                    if (replaceIfExists || ! trustfile.isFile()) {
+                    if (replaceIfExists || !trustfile.isFile()) {
                         writeTruststoreToPem(List.of(certificate), trustfile);
                     }
 
@@ -73,7 +78,7 @@ public class CertificateGenerator {
                         }
                     }
 
-                    LOGGER.log(System.Logger.Level.INFO, "⭐ PEM Certificates, keystore, and truststore generated successfully!");
+                    LOGGER.log(System.Logger.Level.INFO, "⭐  PEM Certificates, keystore, and truststore generated successfully!");
                     LOGGER.log(System.Logger.Level.INFO, "\uD83D\uDD11  Key File: " + keyFile.getAbsolutePath());
                     LOGGER.log(System.Logger.Level.INFO, "\uD83D\uDCDC  Cert File: " + certFile.getAbsolutePath());
                     if (client != null) {
@@ -86,11 +91,14 @@ public class CertificateGenerator {
                     }
 
                 } else if (format == Format.JKS) {
-                    File keyStoreFile = new File(root, request.name() + "-keystore." + format.extension());
-                    File trustStoreFile = new File(root, request.name() + (client != null ? "-client" : "") + "-truststore." + format.extension());
+                    JksCertificateFiles files = new JksCertificateFiles(root.toPath(), request.name(), request.client(), request.password());
+                    certificateFiles.add(files);
 
-                    File clientKeyStoreFile = new File(root, request.name() + "-client-keystore." + format.extension());
-                    File serverTrustStoreFile = new File(root, request.name() + "-server-truststore." + format.extension());
+                    File keyStoreFile = files.keyStoreFile().toFile();
+                    File trustStoreFile = files.trustStoreFile().toFile();
+
+                    File clientKeyStoreFile = files.clientKeyStoreFile().toFile();
+                    File serverTrustStoreFile = files.serverTrustStoreFile().toFile();
 
                     if (replaceIfExists || !keyStoreFile.isFile()) {
                         writePrivateKeyAndCertificateToJKS(certificate, keyPair, keyStoreFile, request.password().toCharArray(), request.getAlias());
@@ -119,11 +127,14 @@ public class CertificateGenerator {
                         LOGGER.log(System.Logger.Level.INFO, "\uD83D\uDD13  Trust Store File: " + trustStoreFile.getAbsolutePath());
                     }
                 } else if (format == Format.PKCS12) {
-                    File keyStoreFile = new File(root, request.name() + "-keystore." + format.extension());
-                    File trustStoreFile = new File(root, request.name() + (client != null ? "-client" : "") + "-truststore." + format.extension());
+                    Pkcs12CertificateFiles files = new Pkcs12CertificateFiles(root.toPath(), request.name(), request.client(), request.password());
+                    certificateFiles.add(files);
 
-                    File clientKeyStoreFile = new File(root, request.name() + "-client-keystore." + format.extension());
-                    File serverTrustStoreFile = new File(root, request.name() + "-server-truststore." + format.extension());
+                    File keyStoreFile = files.keyStoreFile().toFile();
+                    File trustStoreFile = files.trustStoreFile().toFile();
+
+                    File clientKeyStoreFile = files.clientKeyStoreFile().toFile();
+                    File serverTrustStoreFile = files.serverTrustStoreFile().toFile();
 
                     if (replaceIfExists || !keyStoreFile.isFile()) {
                         writePrivateKeyAndCertificateToPKCS12(certificate, keyPair, keyStoreFile, request.password().toCharArray(), request.getAlias());
@@ -159,6 +170,7 @@ public class CertificateGenerator {
             LOGGER.log(System.Logger.Level.ERROR, "Error while generating the certificates", e);
             throw e;
         }
+        return certificateFiles;
     }
 
 }
