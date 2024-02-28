@@ -9,6 +9,7 @@ import org.junitpioneer.jupiter.resource.Dir;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.util.Collection;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -49,7 +50,9 @@ public class GenerationTest {
                 .withAlias("alias")
                 .withFormat(Format.JKS)
                 .withPassword("password");
-        new CertificateGenerator(tempDir, true).generate(request);
+        Collection<CertificateFiles> files = new CertificateGenerator(tempDir, true).generate(request);
+        assertThat(files).hasSize(1);
+        assertThat(files.stream().findFirst().get()).isInstanceOf(JksCertificateFiles.class);
 
         KeyCertOptions serverOptions = new JksOptions().setPath(new File(tempDir.toFile(), "test-keystore.jks").getAbsolutePath()).setPassword("password").setAlias("alias");
         TrustOptions clientOptions = new JksOptions().setPath(new File(tempDir.toFile(), "test-truststore.jks").getAbsolutePath()).setPassword("password").setAlias("alias");
@@ -64,7 +67,9 @@ public class GenerationTest {
         CertificateRequest request = new CertificateRequest()
                 .withName("test")
                 .withFormat(Format.PEM);
-        new CertificateGenerator(tempDir, true).generate(request);
+        Collection<CertificateFiles> files = new CertificateGenerator(tempDir, true).generate(request);
+        assertThat(files).hasSize(1);
+        assertThat(files.stream().findFirst().get()).isInstanceOf(PemCertificateFiles.class);
 
         KeyCertOptions serverOptions = new PemKeyCertOptions()
                 .addKeyPath(new File(tempDir.toFile(), "test.key").getAbsolutePath())
@@ -82,7 +87,9 @@ public class GenerationTest {
                 .withName("test")
                 .withFormat(Format.PKCS12)
                 .withPassword("secret");
-        new CertificateGenerator(tempDir, true).generate(request);
+        Collection<CertificateFiles> files = new CertificateGenerator(tempDir, true).generate(request);
+        assertThat(files).hasSize(1);
+        assertThat(files.stream().findFirst().get()).isInstanceOf(Pkcs12CertificateFiles.class);
 
         KeyCertOptions serverOptions = new PfxOptions().setPath(new File(tempDir.toFile(), "test-keystore.p12").getAbsolutePath()).setPassword("secret");
         TrustOptions clientOptions = new PfxOptions().setPath(new File(tempDir.toFile(), "test-truststore.p12").getAbsolutePath()).setPassword("secret");
@@ -99,7 +106,8 @@ public class GenerationTest {
                 .withFormat(Format.PKCS12)
                 .withFormat(Format.PEM)
                 .withPassword("password");
-        new CertificateGenerator(tempDir, true).generate(request);
+        Collection<CertificateFiles> files = new CertificateGenerator(tempDir, true).generate(request);
+        assertThat(files).hasSize(2);
 
         KeyCertOptions serverOptions = new PfxOptions().setPath(new File(tempDir.toFile(), "test-keystore.p12").getAbsolutePath()).setPassword("password");
         TrustOptions clientOptions = new PemTrustOptions().addCertPath(new File(tempDir.toFile(), "test-ca.crt").getAbsolutePath());
@@ -115,7 +123,9 @@ public class GenerationTest {
                 .withName("test")
                 .withClientCertificate()
                 .withFormat(Format.PEM);
-        new CertificateGenerator(tempDir, true).generate(request);
+        Collection<CertificateFiles> files = new CertificateGenerator(tempDir, true).generate(request);
+        assertThat(files).hasSize(1);
+        assertThat(files.stream().findFirst().get()).isInstanceOf(PemCertificateFiles.class);
 
         KeyCertOptions serverOptions = new PemKeyCertOptions()
                 .addKeyPath(new File(tempDir.toFile(), "test.key").getAbsolutePath())
