@@ -47,6 +47,7 @@ public class CertificateGenerationExtension implements BeforeAllCallback, Parame
 
             CertificateRequest request = new CertificateRequest()
                     .withName(certificate.name())
+                    .withClientCertificate(certificate.client())
                     .withFormats(Arrays.asList(certificate.formats()))
                     .withAlias(certificate.alias().isEmpty() ? null : certificate.alias())
                     .withCN(certificate.cn())
