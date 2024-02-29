@@ -1,5 +1,14 @@
 package me.escoffier.certs;
 
+import org.bouncycastle.asn1.ASN1Encodable;
+import org.bouncycastle.asn1.DERSequence;
+import org.bouncycastle.asn1.x509.BasicConstraints;
+import org.bouncycastle.asn1.x509.ExtendedKeyUsage;
+import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.asn1.x509.GeneralName;
+import org.bouncycastle.asn1.x509.KeyPurposeId;
+import org.bouncycastle.asn1.x509.KeyUsage;
+import org.bouncycastle.cert.jcajce.JcaX509ExtensionUtils;
 import org.bouncycastle.jce.X509Principal;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openssl.PEMParser;
@@ -32,6 +41,29 @@ class CertificateUtils {
         certGen.setSerialNumber(BigInteger.valueOf(System.nanoTime()));
         certGen.setSubjectDN(new X509Principal("CN=" + cn));
         certGen.setIssuerDN(new X509Principal("CN=" + cn));
+
+
+        certGen.addExtension(Extension.subjectKeyIdentifier, false, new JcaX509ExtensionUtils().createSubjectKeyIdentifier(keyPair.getPublic()));
+        certGen.addExtension(Extension.authorityKeyIdentifier, false, new JcaX509ExtensionUtils().createAuthorityKeyIdentifier(keyPair.getPublic()));
+
+        // Set certificate extensions
+        // (1) digitalSignature extension
+        certGen.addExtension(Extension.keyUsage, true,
+                new KeyUsage(KeyUsage.digitalSignature | KeyUsage.keyEncipherment | KeyUsage.dataEncipherment | KeyUsage.keyAgreement | KeyUsage.nonRepudiation));
+
+        certGen.addExtension(Extension.basicConstraints, false, new BasicConstraints(false));
+
+        // (2) extendedKeyUsage extension
+        certGen.addExtension(Extension.extendedKeyUsage, false, new ExtendedKeyUsage(new KeyPurposeId[]{KeyPurposeId.id_kp_clientAuth, KeyPurposeId.id_kp_serverAuth}));
+
+        // (3) subjectAlternativeName
+        DERSequence subjectAlternativeNames = new DERSequence(new ASN1Encodable[] {
+                new GeneralName(GeneralName.dNSName, cn),
+                new GeneralName(GeneralName.dNSName, "127.0.0.1"),
+                new GeneralName(GeneralName.dNSName, "0.0.0.0")
+        });
+        certGen.addExtension(Extension.subjectAlternativeName, false, subjectAlternativeNames);
+
 
         var before = Instant.now().minus(2, ChronoUnit.DAYS);
         var after = Instant.now().plus(duration.toDays(), ChronoUnit.DAYS);
