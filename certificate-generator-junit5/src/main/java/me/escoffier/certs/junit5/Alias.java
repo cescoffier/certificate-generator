@@ -2,7 +2,7 @@ package me.escoffier.certs.junit5;
 
 import me.escoffier.certs.Format;
 
-public @interface Certificate {
+public @interface Alias {
 
     /**
      * Sets the name of the certificate.
@@ -10,19 +10,9 @@ public @interface Certificate {
     String name();
 
     /**
-     * Sets the formats of the certificate, are supported: JKS, PEM and PKCS12.
-     */
-    Format[] formats();
-
-    /**
-     * Sets the password of the certificate if needed.
+     * Sets the password of the certificate alias if needed.
      */
     String password() default "";
-
-    /**
-     * Sets the duration of the certificate in days.
-     */
-    int duration() default 2;
 
     /**
      * Sets the CN (common name) of the certificate.
@@ -34,13 +24,10 @@ public @interface Certificate {
      */
     boolean client() default false;
 
-    Alias[] aliases() default {};
-
     /**
      * Sets the subject alternative names of the certificate.
      * Must follow the format "DNS:example.com", or  "IP:127.0.0.1".
      */
     String[] subjectAlternativeNames() default {};
-
 
 }

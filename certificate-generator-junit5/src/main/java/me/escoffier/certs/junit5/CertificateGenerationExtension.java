@@ -1,14 +1,10 @@
 package me.escoffier.certs.junit5;
 
+import me.escoffier.certs.AliasRequest;
 import me.escoffier.certs.CertificateFiles;
 import me.escoffier.certs.CertificateGenerator;
 import me.escoffier.certs.CertificateRequest;
-
-import org.junit.jupiter.api.extension.BeforeAllCallback;
-import org.junit.jupiter.api.extension.ExtensionContext;
-import org.junit.jupiter.api.extension.ParameterContext;
-import org.junit.jupiter.api.extension.ParameterResolutionException;
-import org.junit.jupiter.api.extension.ParameterResolver;
+import org.junit.jupiter.api.extension.*;
 import org.junit.platform.commons.util.AnnotationUtils;
 
 import java.io.File;
@@ -17,7 +13,6 @@ import java.lang.reflect.Type;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -49,10 +44,24 @@ public class CertificateGenerationExtension implements BeforeAllCallback, Parame
                     .withName(certificate.name())
                     .withClientCertificate(certificate.client())
                     .withFormats(Arrays.asList(certificate.formats()))
-                    .withAlias(certificate.alias().isEmpty() ? null : certificate.alias())
                     .withCN(certificate.cn())
                     .withPassword(certificate.password().isEmpty() ? null : certificate.password())
                     .withDuration(Duration.ofDays(certificate.duration()));
+
+            for (String san : certificate.subjectAlternativeNames()) {
+                request.withSubjectAlternativeName(san);
+            }
+
+            for (Alias alias : certificate.aliases()) {
+                AliasRequest nested = new AliasRequest()
+                        .withCN(alias.cn())
+                        .withPassword(alias.password())
+                        .withClientCertificate(alias.client());
+                request.withAlias(alias.name(), nested);
+                for (String s : alias.subjectAlternativeNames()) {
+                    nested.withSubjectAlternativeName(s);
+                }
+            }
 
             certificateFiles.addAll(generator.generate(request));
         }

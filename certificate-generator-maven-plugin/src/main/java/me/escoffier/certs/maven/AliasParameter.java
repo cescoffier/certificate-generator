@@ -1,11 +1,10 @@
 package me.escoffier.certs.maven;
 
-import me.escoffier.certs.CertificateRequest;
 import org.apache.maven.plugins.annotations.Parameter;
 
 import java.util.List;
 
-public class CertificateRequestParameter {
+public class AliasParameter {
 
     @Parameter(required = true)
     private String name;
@@ -13,17 +12,11 @@ public class CertificateRequestParameter {
     private String password;
     @Parameter(defaultValue = "localhost")
     private String cn;
-    @Parameter(required = true)
-    private List<String> formats;
-    @Parameter(defaultValue = "2")
-    private int duration;
     @Parameter(defaultValue = "false")
     private boolean client;
 
     @Parameter
     private List<String> subjectAlternativeNames;
-
-    @Parameter List<AliasParameter> aliases;
 
     public String getName() {
         return name;
@@ -49,22 +42,6 @@ public class CertificateRequestParameter {
         this.cn = cn;
     }
 
-    public List<String> getFormats() {
-        return formats;
-    }
-
-    public void setFormats(List<String> formats) {
-        this.formats = formats;
-    }
-
-    public int getDuration() {
-        return duration;
-    }
-
-    public void setDuration(int duration) {
-        this.duration = duration;
-    }
-
     public boolean isClient() {
         return client;
     }
@@ -79,13 +56,5 @@ public class CertificateRequestParameter {
 
     public List<String> getSubjectAlternativeNames() {
         return subjectAlternativeNames;
-    }
-
-    public List<AliasParameter> getAliases() {
-        return aliases;
-    }
-
-    public void setAliases(List<AliasParameter> aliases) {
-        this.aliases = aliases;
     }
 }
