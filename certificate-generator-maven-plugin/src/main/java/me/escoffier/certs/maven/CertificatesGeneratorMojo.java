@@ -1,5 +1,6 @@
 package me.escoffier.certs.maven;
 
+import me.escoffier.certs.AliasRequest;
 import me.escoffier.certs.CertificateGenerator;
 import me.escoffier.certs.CertificateRequest;
 import me.escoffier.certs.Format;
@@ -31,7 +32,7 @@ public class CertificatesGeneratorMojo extends AbstractMojo {
         getLog().info("Generating certificates");
 
         var out = new File(outputDirectory);
-        if (! out.isDirectory()) {
+        if (!out.isDirectory()) {
             out.mkdirs();
         }
 
@@ -41,15 +42,37 @@ public class CertificatesGeneratorMojo extends AbstractMojo {
                 CertificateRequest cr = new CertificateRequest()
                         .withName(request.getName())
                         .withFormats(request.getFormats().stream().map(String::toUpperCase).map(Format::valueOf).toList())
-                        .withAlias(request.getAlias())
                         .withClientCertificate(request.isClient())
                         .withCN(request.getCn())
                         .withPassword(request.getPassword())
                         .withDuration(Duration.ofDays(request.getDuration()));
 
+                if (request.getSubjectAlternativeNames() != null) {
+                    for (String subjectAlternativeName : request.getSubjectAlternativeNames()) {
+                        cr.withSubjectAlternativeName(subjectAlternativeName);
+                    }
+                }
+
+                if (request.getAliases() != null) {
+                    for (AliasParameter alias : request.getAliases()) {
+                        AliasRequest req = new AliasRequest()
+                                .withClientCertificate(alias.isClient())
+                                .withPassword(alias.getPassword())
+                                .withCN(alias.getCn());
+
+                        if (alias.getSubjectAlternativeNames() != null) {
+                            for (String subjectAlternativeName : alias.getSubjectAlternativeNames()) {
+                                req.withSubjectAlternativeName(subjectAlternativeName);
+                            }
+                        }
+
+                        cr.withAlias(alias.getName(), req);
+
+                    }
+                }
+
                 generator.generate(cr);
             }
-
 
 
         } catch (Exception e) {

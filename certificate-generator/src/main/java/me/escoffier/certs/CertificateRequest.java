@@ -2,11 +2,12 @@ package me.escoffier.certs;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public final class CertificateRequest {
     private String name;
-    private String alias;
     private String password;
     private List<Format> formats = new ArrayList<>();
     private Duration duration = Duration.ofDays(2);
@@ -14,14 +15,11 @@ public final class CertificateRequest {
 
     private boolean client = false;
 
+    private final Map<String, AliasRequest> aliases = new HashMap<>();
+    private final List<String> sans = new ArrayList<>();
 
     public CertificateRequest withName(String name) {
         this.name = name;
-        return this;
-    }
-
-    public CertificateRequest withAlias(String alias) {
-        this.alias = alias;
         return this;
     }
 
@@ -60,18 +58,24 @@ public final class CertificateRequest {
         return this;
     }
 
+    public CertificateRequest withSubjectAlternativeName(String name) {
+        this.sans.add(name);
+        return this;
+    }
+
+    public CertificateRequest withAlias(String alias, AliasRequest request) {
+        if (alias.equals(name)) {
+            throw new IllegalArgumentException("The alias cannot be the same as the name of the main certificate");
+        }
+        this.aliases.put(alias, request);
+        return this;
+    }
+
     void validate() {
-        if (name == null || name.isEmpty()) {
-            throw new IllegalArgumentException("The name of the certificate must be set");
-        }
-        if (formats.isEmpty()) {
-            formats.add(Format.PEM);
-        }
         if (cn == null || cn.isEmpty()) {
             cn = "localhost";
         }
     }
-
 
     public String getCN() {
         return cn;
@@ -81,19 +85,12 @@ public final class CertificateRequest {
         return duration;
     }
 
-    public String getAlias() {
-        if (alias == null || alias.isEmpty()) {
-            return name;
-        }
-        return alias;
-    }
-
     public String name() {
         return name;
     }
 
 
-    public String password() {
+    public String getPassword() {
         return password;
     }
 
@@ -101,9 +98,16 @@ public final class CertificateRequest {
         return formats;
     }
 
-    public boolean client() {
+    public boolean hasClient() {
         return client;
     }
 
+    public List<String> getSubjectAlternativeNames() {
+        return sans;
+    }
 
+
+    public Map<String, AliasRequest> aliases() {
+        return aliases;
+    }
 }
