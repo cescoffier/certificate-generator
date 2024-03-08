@@ -109,7 +109,6 @@ Here is an example of the Maven plugin usage:
                     <format>PKCS12</format>
                 </formats>
                 <password>secret</password> <!-- Password for the key store if supported -->
-                <alias>alias</alias> <!-- Alias for the key if supported, reuse `name` if not set -->
                 <cn>localhost</cn> <!-- Common Name -->
                 <duration>2</duration> <!-- in days -->
                 <client>true</client> <!-- Generate a client certificate -->
@@ -122,7 +121,6 @@ Here is an example of the Maven plugin usage:
                 </formats>
                 <duration>365</duration>
                 <password>secret</password>
-                <alias>alias</alias>
             </certificate>
         </certificates>
     </configuration>
@@ -148,7 +146,6 @@ Then, uou can use the `me.escoffier.certs.CertificateGenerator` API to generate 
 CertificateRequest request = new CertificateRequest()
                 .withName("test")
                 .withPassword("secret")
-                .withAlias("alias")
                 .withClientCertificate()
                 .withFormat(Format.JKS)
                 .withFormat(Format.PEM);
