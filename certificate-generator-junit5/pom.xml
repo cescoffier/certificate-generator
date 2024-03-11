@@ -26,6 +26,11 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-params</artifactId>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
             <groupId>me.escoffier.certs</groupId>
             <artifactId>certificate-generator</artifactId>
             <version>${project.version}</version>

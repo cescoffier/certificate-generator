@@ -29,17 +29,12 @@ public class CertificateRequestManager {
     public CertificateRequestManager(CertificateRequest request) throws Exception {
         this.request = request;
         this.name = request.name();
-
-        // This is a very annoying behavior that need to be investigated.
-        // When combining PEM with JKS or P12, certificate validation fails.
-        boolean useSameCert = request.formats().contains(Format.PEM)  && request.formats().size() > 1;
-
-        holders.put(request.name(), new CertificateHolder(request.getCN(), request.getSubjectAlternativeNames(), request.getDuration(), request.hasClient(), request.getPassword(), useSameCert));
+        holders.put(request.name(), new CertificateHolder(request.getCN(), request.getSubjectAlternativeNames(), request.getDuration(), request.hasClient(), request.getPassword()));
 
         for (String alias : request.aliases().keySet()) {
             AliasRequest nested = request.aliases().get(alias);
             // We use the duration of the main certificate.
-            holders.put(alias, new CertificateHolder(nested.getCN(), nested.getSubjectAlternativeNames(), request.getDuration(), nested.hasClient(), nested.getPassword(), useSameCert));
+            holders.put(alias, new CertificateHolder(nested.getCN(), nested.getSubjectAlternativeNames(), request.getDuration(), nested.hasClient(), nested.getPassword()));
         }
     }
 
@@ -71,7 +66,7 @@ public class CertificateRequestManager {
         }
         if (replaceIfExists || !files.trustStoreFile().toFile().isFile()) {
             // Client truststore.
-            CertificateUtils.writeTrustStoreToJKS(holders, files.trustStoreFile().toFile(), request.getPassword().toCharArray());
+            CertificateUtils.writeClientTrustStoreToJKS(holders, files.trustStoreFile().toFile(), request.getPassword().toCharArray());
         }
 
         Map<String, CertificateHolder> clients = new HashMap<>();
@@ -83,10 +78,10 @@ public class CertificateRequestManager {
 
         if (! clients.isEmpty()) {
             if (replaceIfExists || !files.clientKeyStoreFile().toFile().isFile()) {
-                CertificateUtils.writePrivateKeyAndCertificateToJKS(clients, request.getPassword(), files.clientKeyStoreFile().toFile());
+                CertificateUtils.writeClientPrivateKeyAndCertificateToJKS(holders, request.getPassword(), files.clientKeyStoreFile().toFile());
             }
             if (replaceIfExists || !files.serverTrustStoreFile().toFile().isFile()) {
-                CertificateUtils.writeTrustStoreToJKS(clients, files.serverTrustStoreFile().toFile(), request.getPassword().toCharArray());
+                CertificateUtils.writeServerTrustStoreToJKS(holders, files.serverTrustStoreFile().toFile(), request.getPassword().toCharArray());
             }
         }
 
@@ -96,11 +91,14 @@ public class CertificateRequestManager {
     private CertificateFiles generatePkcs12Certificates(Path root, boolean replaceIfExists) throws Exception {
         Pkcs12CertificateFiles files = new Pkcs12CertificateFiles(root, name, request.hasClient(), request.getPassword());
 
+
+        // Server key store - contains the server private keys and certificates.
         if (replaceIfExists || !files.keyStoreFile().toFile().isFile()) {
             CertificateUtils.writePrivateKeyAndCertificateToPKCS12(holders, files.keyStoreFile().toFile(), request.getPassword().toCharArray());
         }
+        // Client trust store - contains the server certificates.
         if (replaceIfExists || !files.trustStoreFile().toFile().isFile()) {
-            CertificateUtils.writeTrustStoreToPKCS12(holders, files.trustStoreFile().toFile(), request.getPassword().toCharArray());
+            CertificateUtils.writeClientTrustStoreToPKCS12(holders, files.trustStoreFile().toFile(), request.getPassword().toCharArray());
         }
 
         Map<String, CertificateHolder> clients = new HashMap<>();
@@ -110,12 +108,13 @@ public class CertificateRequestManager {
             }
         }
 
+        // We are in a mTLS configuration, we need to generate the client key store and the server trust store.
         if (! clients.isEmpty()) {
             if (replaceIfExists || !files.clientKeyStoreFile().toFile().isFile()) {
-                CertificateUtils.writePrivateKeyAndCertificateToPKCS12(clients, files.clientKeyStoreFile().toFile(), request.getPassword().toCharArray());
+                CertificateUtils.writeClientPrivateKeyAndCertificateToPKCS12(holders, files.clientKeyStoreFile().toFile(), request.getPassword().toCharArray());
             }
             if (replaceIfExists || !files.serverTrustStoreFile().toFile().isFile()) {
-                CertificateUtils.writeTrustStoreToPKCS12(clients, files.serverTrustStoreFile().toFile(), request.getPassword().toCharArray());
+                CertificateUtils.writeServerTrustStoreToPKCS12(holders, files.serverTrustStoreFile().toFile(), request.getPassword().toCharArray());
             }
         }
 
