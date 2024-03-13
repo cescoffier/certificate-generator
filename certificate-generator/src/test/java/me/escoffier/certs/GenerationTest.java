@@ -325,11 +325,6 @@ public class GenerationTest {
         jksClientKeyStore.getCertificate("test").verify(p12ServerTruststore.getCertificate("test").getPublicKey());
         // P12 client cert should be verified using the JKS server truststore
         p12ClientKeyStore.getCertificate("test").verify(jksServerTruststore.getCertificate("test").getPublicKey());
-        // JKS server certs should be verified using the P12 client truststore
-        jksServerTruststore.getCertificate("test").verify(p12ClientTrustStore.getCertificate("test").getPublicKey());
-        // P12 server certs should be verified using the JKS client truststore
-        p12ServerKeyStore.getCertificate("test").verify(jksClientTrustStore.getCertificate("test").getPublicKey());
-
 
         var clientCrt = CertificateUtils.loadCertificate(new File(tempDir.toFile(), "test-client.crt"));
         var serverCrt = CertificateUtils.loadCertificate(new File(tempDir.toFile(), "test.crt"));

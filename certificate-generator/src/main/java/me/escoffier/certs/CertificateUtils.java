@@ -14,9 +14,6 @@ import org.bouncycastle.cert.jcajce.JcaX509ExtensionUtils;
 import org.bouncycastle.jce.X509Principal;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openssl.PEMParser;
-import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
-import org.bouncycastle.util.io.pem.PemObject;
-import org.bouncycastle.util.io.pem.PemWriter;
 import org.bouncycastle.x509.X509V3CertificateGenerator;
 
 import java.io.*;
@@ -140,7 +137,31 @@ class CertificateUtils {
         keyStoreFos.close();
     }
 
-    public static void writeTrustStoreToJKS(Map<String, CertificateHolder> certificates, File output, char[] password) throws Exception {
+    public static void writeClientPrivateKeyAndCertificateToJKS(Map<String, CertificateHolder> certs, String password, File output) throws Exception {
+        KeyStore keyStore = KeyStore.getInstance("JKS");
+        keyStore.load(null, null);
+
+        boolean hasAtLeastOneEntry = false;
+        for (Map.Entry<String, CertificateHolder> entry : certs.entrySet()) {
+            String alias = entry.getKey();
+            if (entry.getValue().hasClient()) {
+                hasAtLeastOneEntry = true;
+                keyStore.setKeyEntry(
+                        alias,
+                        entry.getValue().clientKeys().getPrivate(),
+                        entry.getValue().password(),
+                        new Certificate[]{entry.getValue().clientCertificate()});
+            }
+        }
+
+        if (hasAtLeastOneEntry) {
+            FileOutputStream keyStoreFos = new FileOutputStream(output);
+            keyStore.store(keyStoreFos, password.toCharArray());
+            keyStoreFos.close();
+        }
+    }
+
+    public static void writeClientTrustStoreToJKS(Map<String, CertificateHolder> certificates, File output, char[] password) throws Exception {
         KeyStore trustStore = KeyStore.getInstance("JKS");
         trustStore.load(null, null);
         for (Map.Entry<String, CertificateHolder> entry : certificates.entrySet()) {
@@ -149,6 +170,26 @@ class CertificateUtils {
         FileOutputStream trustStoreFos = new FileOutputStream(output);
         trustStore.store(trustStoreFos, password);
         trustStoreFos.close();
+    }
+
+    public static void writeServerTrustStoreToJKS(Map<String, CertificateHolder> certificates, File output, char[] password) throws Exception {
+        KeyStore trustStore = KeyStore.getInstance("JKS");
+        trustStore.load(null, null);
+
+        boolean hasAtLeastOneEntry = false;
+
+        for (Map.Entry<String, CertificateHolder> entry : certificates.entrySet()) {
+            if (entry.getValue().hasClient()) {
+                trustStore.setCertificateEntry(entry.getKey(), entry.getValue().clientCertificate());
+                hasAtLeastOneEntry = true;
+            }
+        }
+
+        if (hasAtLeastOneEntry) {
+            FileOutputStream trustStoreFos = new FileOutputStream(output);
+            trustStore.store(trustStoreFos, password);
+            trustStoreFos.close();
+        }
     }
 
     public static void writePrivateKeyAndCertificateToPKCS12(Map<String, CertificateHolder> certificates, File output, char[] password) throws Exception {
@@ -168,7 +209,32 @@ class CertificateUtils {
         keyStoreFos.close();
     }
 
-    public static void writeTrustStoreToPKCS12(Map<String, CertificateHolder> certificates, File output, char[] password) throws Exception {
+    public static void writeClientPrivateKeyAndCertificateToPKCS12(Map<String, CertificateHolder> certificates, File output, char[] password) throws Exception {
+        KeyStore keyStore = KeyStore.getInstance("PKCS12");
+        keyStore.load(null, null);
+
+
+        boolean hasAtLeastOneEntry = false;
+        for (Map.Entry<String, CertificateHolder> entry : certificates.entrySet()) {
+            if (entry.getValue().hasClient()) {
+                hasAtLeastOneEntry = true;
+                keyStore.setKeyEntry(
+                        entry.getKey(),
+                        entry.getValue().clientKeys().getPrivate(),
+                        entry.getValue().password(),
+                        new Certificate[]{entry.getValue().clientCertificate()});
+            }
+
+        }
+
+        if (hasAtLeastOneEntry) {
+            FileOutputStream keyStoreFos = new FileOutputStream(output);
+            keyStore.store(keyStoreFos, password);
+            keyStoreFos.close();
+        }
+    }
+
+    public static void writeClientTrustStoreToPKCS12(Map<String, CertificateHolder> certificates, File output, char[] password) throws Exception {
         KeyStore trustStore = KeyStore.getInstance("PKCS12");
         trustStore.load(null, null);
         for (Map.Entry<String, CertificateHolder> entry : certificates.entrySet()) {
@@ -177,6 +243,25 @@ class CertificateUtils {
         FileOutputStream trustStoreFos = new FileOutputStream(output);
         trustStore.store(trustStoreFos, password);
         trustStoreFos.close();
+    }
+
+    public static void writeServerTrustStoreToPKCS12(Map<String, CertificateHolder> certificates, File output, char[] password) throws Exception {
+        KeyStore trustStore = KeyStore.getInstance("PKCS12");
+        trustStore.load(null, null);
+
+        boolean hasAtLeastOneEntry = false;
+        for (Map.Entry<String, CertificateHolder> entry : certificates.entrySet()) {
+            if (entry.getValue().hasClient()) {
+                trustStore.setCertificateEntry(entry.getKey(), entry.getValue().clientCertificate());
+                hasAtLeastOneEntry = true;
+            }
+        }
+
+        if (hasAtLeastOneEntry) {
+            FileOutputStream trustStoreFos = new FileOutputStream(output);
+            trustStore.store(trustStoreFos, password);
+            trustStoreFos.close();
+        }
     }
 
     public static KeyPair loadPrivateKey(File keyFile) throws Exception {
