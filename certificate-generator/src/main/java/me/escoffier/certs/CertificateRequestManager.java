@@ -34,7 +34,11 @@ public class CertificateRequestManager {
         for (String alias : request.aliases().keySet()) {
             AliasRequest nested = request.aliases().get(alias);
             // We use the duration of the main certificate.
-            holders.put(alias, new CertificateHolder(nested.getCN(), nested.getSubjectAlternativeNames(), request.getDuration(), nested.hasClient(), nested.getPassword()));
+            String cn = nested.getCN();
+            if (cn == null) {
+                cn = request.getCN();
+            }
+            holders.put(alias, new CertificateHolder(cn, nested.getSubjectAlternativeNames(), request.getDuration(), nested.hasClient(), nested.getPassword()));
         }
     }
 
