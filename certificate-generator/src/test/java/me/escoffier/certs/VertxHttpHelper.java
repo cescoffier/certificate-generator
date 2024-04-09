@@ -10,17 +10,30 @@ public class VertxHttpHelper {
         // Avoid direct instantiation
     }
 
-    static HttpServer createHttpServer(Vertx vertx, KeyCertOptions options) {
+    public static HttpServer createHttpServer(Vertx vertx, KeyCertOptions options) {
         return vertx.createHttpServer(new HttpServerOptions().setSsl(true).setKeyCertOptions(options))
                 .requestHandler(req -> req.response().end("OK"))
                 .listen(0)
                 .toCompletionStage().toCompletableFuture().join();
     }
 
-    static HttpClientResponse createHttpClientAndInvoke(Vertx vertx, HttpServer server, TrustOptions options) {
+    public static HttpClientResponse createHttpClientAndInvoke(Vertx vertx, HttpServer server, TrustOptions options) {
+        return createHttpClientAndInvoke(vertx, server, options, true);
+    }
+
+    public static HttpClientResponse createHttpClientAndInvoke(Vertx vertx, HttpServer server, TrustOptions options, boolean verifyHost) {
+
+        if (options == null) {
+            return vertx.createHttpClient(new HttpClientOptions()
+                            .setSsl(true).setDefaultHost("localhost").setDefaultPort(server.actualPort()).setVerifyHost(verifyHost)
+                    )
+                    .request(HttpMethod.GET, "/").flatMap(HttpClientRequest::send).toCompletionStage().toCompletableFuture().join();
+        }
+
         return vertx.createHttpClient(new HttpClientOptions()
                         .setSsl(true).setDefaultHost("localhost").setDefaultPort(server.actualPort())
-                        .setTrustOptions(options))
+                        .setTrustOptions(options)
+                        .setVerifyHost(verifyHost))
                 .request(HttpMethod.GET, "/").flatMap(HttpClientRequest::send).toCompletionStage().toCompletableFuture().join();
     }
 

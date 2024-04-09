@@ -26,7 +26,6 @@ public class CertificateHolder {
         KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
         keyPairGenerator.initialize(2048);
 
-
         keys = keyPairGenerator.generateKeyPair();
         certificate = CertificateUtils.generateCertificate(keys, cn, sans, duration);
 

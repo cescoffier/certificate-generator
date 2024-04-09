@@ -28,7 +28,7 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
-class CertificateUtils {
+public class CertificateUtils {
 
     static {
         Security.addProvider(new BouncyCastleProvider());
@@ -89,12 +89,17 @@ class CertificateUtils {
         return certGen.generate(keyPair.getPrivate());
     }
 
-    public static void writeCertificateToPEM(X509Certificate certificate, File output) throws IOException, CertificateEncodingException {
+    public static void writeCertificateToPEM(X509Certificate certificate, File output, X509Certificate... chain) throws IOException, CertificateEncodingException {
         try (FileWriter fileWriter = new FileWriter(output);
              BufferedWriter pemWriter = new BufferedWriter(fileWriter)) {
             pemWriter.write("-----BEGIN CERTIFICATE-----\n");
             pemWriter.write(Base64.getEncoder().encodeToString(certificate.getEncoded()));
             pemWriter.write("\n-----END CERTIFICATE-----\n\n");
+            for (X509Certificate cert : chain) {
+                pemWriter.write("-----BEGIN CERTIFICATE-----\n");
+                pemWriter.write(Base64.getEncoder().encodeToString(cert.getEncoded()));
+                pemWriter.write("\n-----END CERTIFICATE-----\n\n");
+            }
         }
     }
 
