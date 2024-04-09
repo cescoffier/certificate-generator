@@ -4,7 +4,7 @@
 
     <groupId>me.escoffier.certs</groupId>
     <artifactId>certificate-generator-parent</artifactId>
-    <version>0.5.2-SNAPSHOT</version>
+    <version>0.6.0</version>
 
     <packaging>pom</packaging>
 
@@ -200,7 +200,7 @@
         <url>https://github.com/cescoffier/certificate-generator</url>
         <connection>https://github.com/cescoffier/certificate-generator.git</connection>
         <developerConnection>scm:git:https://github.com/cescoffier/certificate-generator.git</developerConnection>
-        <tag>HEAD</tag>
+        <tag>certificate-generator-parent-0.6.0</tag>
     </scm>
 
     <inceptionYear>2022</inceptionYear>
