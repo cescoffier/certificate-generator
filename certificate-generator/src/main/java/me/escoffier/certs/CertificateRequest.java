@@ -1,5 +1,7 @@
 package me.escoffier.certs;
 
+import java.security.PrivateKey;
+import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -17,6 +19,9 @@ public final class CertificateRequest {
 
     private final Map<String, AliasRequest> aliases = new HashMap<>();
     private final List<String> sans = new ArrayList<>();
+
+    private boolean signed;
+    private Issuer issuer;
 
     public CertificateRequest withName(String name) {
         this.name = name;
@@ -71,6 +76,15 @@ public final class CertificateRequest {
         return this;
     }
 
+    public record Issuer(X509Certificate issuer, PrivateKey issuerPrivateKey) {
+    }
+
+    public CertificateRequest signedWith(X509Certificate issuer, PrivateKey issuerPrivateKey) {
+        this.signed = true;
+        this.issuer = new Issuer(issuer, issuerPrivateKey);
+        return this;
+    }
+
     void validate() {
         if (cn == null || cn.isEmpty()) {
             cn = "localhost";
@@ -106,8 +120,15 @@ public final class CertificateRequest {
         return sans;
     }
 
-
     public Map<String, AliasRequest> aliases() {
         return aliases;
+    }
+
+    public boolean isSelfSigned() {
+        return ! signed;
+    }
+
+    public Issuer issuer() {
+        return issuer;
     }
 }
