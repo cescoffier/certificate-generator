@@ -1,30 +1,51 @@
 package me.escoffier.certs;
 
 import org.bouncycastle.asn1.ASN1Encodable;
+import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.DERSequence;
+import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.BasicConstraints;
 import org.bouncycastle.asn1.x509.ExtendedKeyUsage;
 import org.bouncycastle.asn1.x509.Extension;
 import org.bouncycastle.asn1.x509.GeneralName;
 import org.bouncycastle.asn1.x509.KeyPurposeId;
 import org.bouncycastle.asn1.x509.KeyUsage;
+import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
+import org.bouncycastle.cert.CertIOException;
 import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.cert.X509v3CertificateBuilder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509ExtensionUtils;
-import org.bouncycastle.jce.X509Principal;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openssl.PEMParser;
+import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.bouncycastle.x509.X509V3CertificateGenerator;
 
-import java.io.*;
+import javax.security.auth.x500.X500Principal;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.math.BigInteger;
-import java.security.*;
-import java.security.cert.*;
+import java.security.KeyPair;
+import java.security.KeyStore;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.Security;
 import java.security.cert.Certificate;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Base64;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -34,28 +55,79 @@ public class CertificateUtils {
         Security.addProvider(new BouncyCastleProvider());
     }
 
-    public static X509Certificate generateCertificate(KeyPair keyPair, String cn, List<String> sans, Duration duration) throws Exception {
-        // Generate self-signed X509 Certificate
-        X509V3CertificateGenerator certGen = new X509V3CertificateGenerator();
-        certGen.setSerialNumber(BigInteger.valueOf(System.nanoTime()));
-        certGen.setSubjectDN(new X509Principal("CN=" + cn));
-        certGen.setIssuerDN(new X509Principal("CN=" + cn));
+    public static X509Certificate generateCertificate(KeyPair keyPair, String cn, List<String> sans, Duration duration, CertificateRequest.Issuer issuerHolder) throws Exception {
+        if (issuerHolder != null) {
+            return generateSignedCertificate(keyPair, cn, sans, duration, issuerHolder);
+        }
+        var issuer = new X500Name("CN=" + cn);
+        X509v3CertificateBuilder builder = getCertificateBuilder(keyPair, cn, sans, duration, issuer);
+        JcaContentSignerBuilder contentSignerBuilder = new JcaContentSignerBuilder("SHA256WithRSAEncryption");
+        return new JcaX509CertificateConverter().getCertificate(builder.build(contentSignerBuilder.build(keyPair.getPrivate())));
+    }
 
+    private static X509v3CertificateBuilder getCertificateBuilder(KeyPair keyPair, String cn, List<String> sans, Duration duration, X500Name issuer) throws CertIOException, NoSuchAlgorithmException {
+        var subject = new X500Name("CN=" + cn);
+        var before = Instant.now().minus(2, ChronoUnit.DAYS);
+        var after = Instant.now().plus(duration.toDays(), ChronoUnit.DAYS);
+        var keyInfo = SubjectPublicKeyInfo.getInstance(ASN1Sequence.getInstance(keyPair.getPublic().getEncoded()));
+        X509v3CertificateBuilder builder = new X509v3CertificateBuilder(
+                issuer,
+                BigInteger.valueOf(System.nanoTime()),
+                new Date(before.toEpochMilli()),
+                new Date(after.toEpochMilli()),
+                subject,
+                keyInfo
+        );
 
-        certGen.addExtension(Extension.subjectKeyIdentifier, false, new JcaX509ExtensionUtils().createSubjectKeyIdentifier(keyPair.getPublic()));
-        certGen.addExtension(Extension.authorityKeyIdentifier, false, new JcaX509ExtensionUtils().createAuthorityKeyIdentifier(keyPair.getPublic()));
+        builder.addExtension(Extension.subjectKeyIdentifier, false, new JcaX509ExtensionUtils().createSubjectKeyIdentifier(keyPair.getPublic()));
+        builder.addExtension(Extension.authorityKeyIdentifier, false, new JcaX509ExtensionUtils().createAuthorityKeyIdentifier(keyPair.getPublic()));
 
         // Set certificate extensions
         // (1) digitalSignature extension
-        certGen.addExtension(Extension.keyUsage, true,
+        builder.addExtension(Extension.keyUsage, true,
                 new KeyUsage(KeyUsage.digitalSignature | KeyUsage.keyEncipherment | KeyUsage.dataEncipherment | KeyUsage.keyAgreement | KeyUsage.nonRepudiation));
 
-        certGen.addExtension(Extension.basicConstraints, false, new BasicConstraints(false));
+        builder.addExtension(Extension.basicConstraints, false, new BasicConstraints(false));
 
         // (2) extendedKeyUsage extension
-        certGen.addExtension(Extension.extendedKeyUsage, false, new ExtendedKeyUsage(new KeyPurposeId[]{KeyPurposeId.id_kp_clientAuth, KeyPurposeId.id_kp_serverAuth}));
+        builder.addExtension(Extension.extendedKeyUsage, false, new ExtendedKeyUsage(new KeyPurposeId[]{KeyPurposeId.id_kp_clientAuth, KeyPurposeId.id_kp_serverAuth}));
 
         // (3) subjectAlternativeName
+        if (sans.isEmpty()) {
+            DERSequence subjectAlternativeNames = new DERSequence(new ASN1Encodable[]{
+                    new GeneralName(GeneralName.dNSName, cn),
+                    new GeneralName(GeneralName.iPAddress, "127.0.0.1"),
+                    new GeneralName(GeneralName.iPAddress, "0.0.0.0")
+            });
+            builder.addExtension(Extension.subjectAlternativeName, false, subjectAlternativeNames);
+        } else {
+            DERSequence subjectAlternativeNames =
+                    new DERSequence(sans.stream().map(s -> {
+                        if (s.startsWith("DNS:")) {
+                            return new GeneralName(GeneralName.dNSName, s.substring(4));
+                        } else if (s.startsWith("IP:")) {
+                            return new GeneralName(GeneralName.iPAddress, s.substring(3));
+                        } else {
+                            return new GeneralName(GeneralName.dNSName, s);
+                        }
+                    }).toArray(ASN1Encodable[]::new));
+            builder.addExtension(Extension.subjectAlternativeName, false, subjectAlternativeNames);
+        }
+        return builder;
+    }
+
+    public static X509Certificate generateSignedCertificate(KeyPair keyPair, String cn, List<String> sans, Duration duration, CertificateRequest.Issuer issuerHolder) throws Exception {
+        var before = Instant.now().minus(2, ChronoUnit.DAYS);
+        var after = Instant.now().plus(duration.toDays(), ChronoUnit.DAYS);
+        X509V3CertificateGenerator certGen = new X509V3CertificateGenerator();
+        certGen.setSerialNumber(new java.math.BigInteger("2"));
+        certGen.setIssuerDN(issuerHolder.issuer().getSubjectX500Principal());
+        certGen.setSubjectDN(new X500Principal("CN=" + cn));
+        certGen.setPublicKey(keyPair.getPublic());
+        certGen.setNotBefore(new Date(before.toEpochMilli())); // Yesterday
+        certGen.setNotAfter(new Date(after.toEpochMilli())); // 1 year
+        certGen.setSignatureAlgorithm("SHA256WithRSAEncryption");
+
         if (sans.isEmpty()) {
             DERSequence subjectAlternativeNames = new DERSequence(new ASN1Encodable[]{
                     new GeneralName(GeneralName.dNSName, cn),
@@ -76,17 +148,20 @@ public class CertificateUtils {
                     }).toArray(ASN1Encodable[]::new));
             certGen.addExtension(Extension.subjectAlternativeName, false, subjectAlternativeNames);
         }
+        certGen.addExtension(Extension.subjectKeyIdentifier, false, new JcaX509ExtensionUtils().createSubjectKeyIdentifier(keyPair.getPublic()));
+        // Do not add authority when using a CA-signed certificate
 
+        // Set certificate extensions
+//        // (1) digitalSignature extension
+        certGen.addExtension(Extension.keyUsage, true,
+                new KeyUsage(KeyUsage.digitalSignature | KeyUsage.keyEncipherment | KeyUsage.dataEncipherment | KeyUsage.keyAgreement | KeyUsage.nonRepudiation));
 
-        var before = Instant.now().minus(2, ChronoUnit.DAYS);
-        var after = Instant.now().plus(duration.toDays(), ChronoUnit.DAYS);
+        certGen.addExtension(Extension.basicConstraints, false, new BasicConstraints(false));
 
-        certGen.setNotBefore(new java.util.Date(before.toEpochMilli()));
-        certGen.setNotAfter(new java.util.Date(after.toEpochMilli()));
-        certGen.setPublicKey(keyPair.getPublic());
-        certGen.setSignatureAlgorithm("SHA256WithRSAEncryption");
+        // (2) extendedKeyUsage extension
+        certGen.addExtension(Extension.extendedKeyUsage, false, new ExtendedKeyUsage(new KeyPurposeId[]{KeyPurposeId.id_kp_clientAuth, KeyPurposeId.id_kp_serverAuth}));
 
-        return certGen.generate(keyPair.getPrivate());
+        return certGen.generate(issuerHolder.issuerPrivateKey(), "BC");
     }
 
     public static void writeCertificateToPEM(X509Certificate certificate, File output, X509Certificate... chain) throws IOException, CertificateEncodingException {
@@ -202,12 +277,17 @@ public class CertificateUtils {
         keyStore.load(null, null);
 
         for (Map.Entry<String, CertificateHolder> entry : certificates.entrySet()) {
+            if (entry.getValue().issuer() != null) {
+                keyStore.setCertificateEntry("issuer-" + entry.getKey(), entry.getValue().issuer().issuer());
+            }
             keyStore.setKeyEntry(
                     entry.getKey(),
                     entry.getValue().keys().getPrivate(),
                     entry.getValue().password(),
                     new Certificate[]{entry.getValue().certificate()});
         }
+
+
 
         FileOutputStream keyStoreFos = new FileOutputStream(output);
         keyStore.store(keyStoreFos, password);
@@ -295,8 +375,9 @@ public class CertificateUtils {
                 Object obj = pemParser.readObject();
                 if (obj instanceof X509Certificate) {
                     return (X509Certificate) obj;
-                } if (obj instanceof X509CertificateHolder) {
-                    return  new JcaX509CertificateConverter().getCertificate((X509CertificateHolder) obj);
+                }
+                if (obj instanceof X509CertificateHolder) {
+                    return new JcaX509CertificateConverter().getCertificate((X509CertificateHolder) obj);
                 } else {
                     throw new IllegalArgumentException("Invalid PEM file format: " + obj);
                 }

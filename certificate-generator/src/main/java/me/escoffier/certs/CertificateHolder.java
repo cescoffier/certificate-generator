@@ -18,20 +18,22 @@ public class CertificateHolder {
     private final X509Certificate clientCertificate;
 
     private final String password;
+    private final CertificateRequest.Issuer issuer;
 
     /**
      * Generates a new instance of {@link CertificateHolder}, with a new random key pair and a certificate.
      */
-    public CertificateHolder(String cn, List<String> sans, Duration duration, boolean generateClient, String password) throws Exception {
+    public CertificateHolder(String cn, List<String> sans, Duration duration, boolean generateClient, String password, CertificateRequest.Issuer issuer) throws Exception {
         KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
         keyPairGenerator.initialize(2048);
 
-        keys = keyPairGenerator.generateKeyPair();
-        certificate = CertificateUtils.generateCertificate(keys, cn, sans, duration);
+        this.issuer = issuer;
+        this.keys = keyPairGenerator.generateKeyPair();
+        this.certificate = CertificateUtils.generateCertificate(this.keys, cn, sans, duration, issuer);
 
         if (generateClient) {
             clientKeys = keyPairGenerator.generateKeyPair();
-            clientCertificate = CertificateUtils.generateCertificate(clientKeys, cn, sans, duration);
+            clientCertificate = CertificateUtils.generateCertificate(clientKeys, cn, sans, duration, issuer);
         } else {
             clientKeys = null;
             clientCertificate = null;
@@ -57,6 +59,10 @@ public class CertificateHolder {
 
     public boolean hasClient() {
         return clientKeys != null;
+    }
+
+    public CertificateRequest.Issuer issuer() {
+        return issuer;
     }
 
     public char[] password() {

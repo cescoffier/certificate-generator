@@ -29,7 +29,8 @@ public class CertificateRequestManager {
     public CertificateRequestManager(CertificateRequest request) throws Exception {
         this.request = request;
         this.name = request.name();
-        holders.put(request.name(), new CertificateHolder(request.getCN(), request.getSubjectAlternativeNames(), request.getDuration(), request.hasClient(), request.getPassword()));
+        holders.put(request.name(),
+                new CertificateHolder(request.getCN(), request.getSubjectAlternativeNames(), request.getDuration(), request.hasClient(), request.getPassword(), request.issuer()));
 
         for (String alias : request.aliases().keySet()) {
             AliasRequest nested = request.aliases().get(alias);
@@ -38,7 +39,8 @@ public class CertificateRequestManager {
             if (cn == null) {
                 cn = request.getCN();
             }
-            holders.put(alias, new CertificateHolder(cn, nested.getSubjectAlternativeNames(), request.getDuration(), nested.hasClient(), nested.getPassword()));
+            holders.put(alias,
+                    new CertificateHolder(cn, nested.getSubjectAlternativeNames(), request.getDuration(), nested.hasClient(), nested.getPassword(), request.issuer()));
         }
     }
 

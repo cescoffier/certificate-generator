@@ -36,7 +36,7 @@ public class CertificateChainGenerator {
 
     private List<String> sans = List.of("DNS:localhost");
 
-    private File baseDir; // Mandatory
+    private final File baseDir;
 
     public CertificateChainGenerator(File baseDir) {
         this.baseDir = baseDir;
