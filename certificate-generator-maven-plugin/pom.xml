@@ -3,18 +3,18 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>me.escoffier.certs</groupId>
-        <artifactId>certificate-generator-parent</artifactId>
+        <groupId>io.smallrye.certs</groupId>
+        <artifactId>smallrye-certificate-generator-parent</artifactId>
         <version>0.7.2-SNAPSHOT</version>
     </parent>
 
-    <artifactId>certificate-generator-maven-plugin</artifactId>
+    <artifactId>smallrye-certificate-generator-maven-plugin</artifactId>
     <packaging>maven-plugin</packaging>
 
     <dependencies>
         <dependency>
-            <groupId>me.escoffier.certs</groupId>
-            <artifactId>certificate-generator</artifactId>
+            <groupId>io.smallrye.certs</groupId>
+            <artifactId>smallrye-certificate-generator</artifactId>
             <version>${project.version}</version>
         </dependency>
 

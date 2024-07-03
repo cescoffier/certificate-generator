@@ -1,8 +1,7 @@
 # 🔐 Certificate Generator
 
-A Java API, a Junit 5 extension and a Maven plugin to generate (self-signed) certificates.
-The main goal is to provide an easy way to generate self-signed certificates for testing purposes.
-Thus, the test can used the generated certificates to verify the application.
+A Java API, a Junit 5 extension and a Maven plugin to generate (self-signed) certificates as well a signed certificate.
+The main goal is to provide an easy way to generate self-signed and signed certificates.
 
 ## Features
 
@@ -10,6 +9,8 @@ Thus, the test can used the generated certificates to verify the application.
 - mTLS (client and server) generation support
 - Maven plugin to generate certificates
 - Junit 5 extension to generate certificates in tests
+- Local CA generation
+- Generate signed certificates
 
 ## Generated files
 
@@ -64,8 +65,8 @@ To use the Junit 5 extension, add the following dependency to your project:
 
 ```xml
 <dependency>
-    <groupId>me.escoffier.certs</groupId>
-    <artifactId>certificate-generator-junit5</artifactId>
+    <groupId>io.smallrye.certs</groupId>
+    <artifactId>smallrye-certificate-generator-junit5</artifactId>
     <version>${VERSION}</version>
     <scope>test</scope>
 </dependency>
@@ -89,8 +90,8 @@ Here is an example of the Maven plugin usage:
 
 ```xml
 <plugin>
-    <groupId>me.escoffier.certs</groupId>
-    <artifactId>certificate-generator-maven-plugin</artifactId>
+    <groupId>io.smallrye.certs</groupId>
+    <artifactId>smallrye-certificate-generator-maven-plugin</artifactId>
     <version>${VERSION}</version>
     <executions>
         <execution>
@@ -133,14 +134,14 @@ First, you need to add the following dependency to your project:
 
 ```xml
 <dependency>    
-  <groupId>me.escoffier.certs</groupId>
-  <artifactId>certificate-generator</artifactId>
+  <groupId>io.smallrye.certs</groupId>
+  <artifactId>smallrye-certificate-generator</artifactId>
    <version>${VERSION}</version>
     <scope>test</scope>  
 </dependency>
 ```
 
-Then, uou can use the `me.escoffier.certs.CertificateGenerator` API to generate certificates programmatically:
+Then, uou can use the `io.smallrye.certs.CertificateGenerator` API to generate certificates programmatically:
 
 ```java
 CertificateRequest request = new CertificateRequest()

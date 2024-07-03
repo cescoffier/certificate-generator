@@ -2,8 +2,14 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>me.escoffier.certs</groupId>
-    <artifactId>certificate-generator-parent</artifactId>
+    <parent>
+        <groupId>io.smallrye</groupId>
+        <artifactId>smallrye-parent</artifactId>
+        <version>44</version>
+    </parent>
+
+    <groupId>io.smallrye.certs</groupId>
+    <artifactId>smallrye-certificate-generator-parent</artifactId>
     <version>0.7.2-SNAPSHOT</version>
 
     <packaging>pom</packaging>
@@ -94,7 +100,7 @@
             <dependency>
                 <groupId>io.vertx</groupId>
                 <artifactId>vertx-core</artifactId>
-                <version>4.5.2</version>
+                <version>4.5.8</version>
                 <scope>test</scope>
             </dependency>
             <dependency>

@@ -3,12 +3,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>me.escoffier.certs</groupId>
-        <artifactId>certificate-generator-parent</artifactId>
+        <groupId>io.smallrye.certs</groupId>
+        <artifactId>smallrye-certificate-generator-parent</artifactId>
         <version>0.7.2-SNAPSHOT</version>
     </parent>
 
-    <artifactId>certificate-generator-junit5</artifactId>
+    <artifactId>smallrye-certificate-generator-junit5</artifactId>
 
 
     <name>Certificate Generator - Junit5 Extension</name>
@@ -31,8 +31,8 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>me.escoffier.certs</groupId>
-            <artifactId>certificate-generator</artifactId>
+            <groupId>io.smallrye.certs</groupId>
+            <artifactId>smallrye-certificate-generator</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>
