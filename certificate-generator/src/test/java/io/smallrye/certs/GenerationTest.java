@@ -1,12 +1,6 @@
 package io.smallrye.certs;
 
-import io.vertx.core.Vertx;
-import io.vertx.core.net.*;
-import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.junitpioneer.jupiter.resource.Dir;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -14,7 +8,14 @@ import java.nio.file.Path;
 import java.security.KeyStore;
 import java.util.Collection;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junitpioneer.jupiter.resource.Dir;
+
+import io.vertx.core.Vertx;
+import io.vertx.core.net.*;
 
 public class GenerationTest {
 
@@ -38,8 +39,10 @@ public class GenerationTest {
                 .withPassword("password");
         new CertificateGenerator(tempDir, true).generate(request);
 
-        KeyCertOptions serverOptions = new JksOptions().setPath(new File(tempDir.toFile(), "test-keystore.jks").getAbsolutePath()).setPassword("password");
-        TrustOptions clientOptions = new JksOptions().setPath(new File(tempDir.toFile(), "test-truststore.jks").getAbsolutePath()).setPassword("password");
+        KeyCertOptions serverOptions = new JksOptions()
+                .setPath(new File(tempDir.toFile(), "test-keystore.jks").getAbsolutePath()).setPassword("password");
+        TrustOptions clientOptions = new JksOptions()
+                .setPath(new File(tempDir.toFile(), "test-truststore.jks").getAbsolutePath()).setPassword("password");
         var server = VertxHttpHelper.createHttpServer(vertx, serverOptions);
         var response = VertxHttpHelper.createHttpClientAndInvoke(vertx, server, clientOptions);
 
@@ -58,7 +61,8 @@ public class GenerationTest {
         KeyCertOptions serverOptions = new PemKeyCertOptions()
                 .addKeyPath(new File(tempDir.toFile(), "test.key").getAbsolutePath())
                 .addCertPath(new File(tempDir.toFile(), "test.crt").getAbsolutePath());
-        TrustOptions clientOptions = new PemTrustOptions().addCertPath(new File(tempDir.toFile(), "test-ca.crt").getAbsolutePath());
+        TrustOptions clientOptions = new PemTrustOptions()
+                .addCertPath(new File(tempDir.toFile(), "test-ca.crt").getAbsolutePath());
         var server = VertxHttpHelper.createHttpServer(vertx, serverOptions);
         var response = VertxHttpHelper.createHttpClientAndInvoke(vertx, server, clientOptions);
 
@@ -75,8 +79,10 @@ public class GenerationTest {
         Assertions.assertThat(files).hasSize(1);
         assertThat(files.stream().findFirst().get()).isInstanceOf(Pkcs12CertificateFiles.class);
 
-        KeyCertOptions serverOptions = new PfxOptions().setPath(new File(tempDir.toFile(), "test-keystore.p12").getAbsolutePath()).setPassword("secret");
-        TrustOptions clientOptions = new PfxOptions().setPath(new File(tempDir.toFile(), "test-truststore.p12").getAbsolutePath()).setPassword("secret");
+        KeyCertOptions serverOptions = new PfxOptions()
+                .setPath(new File(tempDir.toFile(), "test-keystore.p12").getAbsolutePath()).setPassword("secret");
+        TrustOptions clientOptions = new PfxOptions()
+                .setPath(new File(tempDir.toFile(), "test-truststore.p12").getAbsolutePath()).setPassword("secret");
         var server = VertxHttpHelper.createHttpServer(vertx, serverOptions);
         var response = VertxHttpHelper.createHttpClientAndInvoke(vertx, server, clientOptions);
 
@@ -93,8 +99,10 @@ public class GenerationTest {
         Collection<CertificateFiles> files = new CertificateGenerator(tempDir, true).generate(request);
         Assertions.assertThat(files).hasSize(2);
 
-        KeyCertOptions serverOptions = new PfxOptions().setPath(new File(tempDir.toFile(), "test-keystore.p12").getAbsolutePath()).setPassword("password");
-        TrustOptions clientOptions = new PemTrustOptions().addCertPath(new File(tempDir.toFile(), "test-ca.crt").getAbsolutePath());
+        KeyCertOptions serverOptions = new PfxOptions()
+                .setPath(new File(tempDir.toFile(), "test-keystore.p12").getAbsolutePath()).setPassword("password");
+        TrustOptions clientOptions = new PemTrustOptions()
+                .addCertPath(new File(tempDir.toFile(), "test-ca.crt").getAbsolutePath());
         var server = VertxHttpHelper.createHttpServer(vertx, serverOptions);
         var response = VertxHttpHelper.createHttpClientAndInvoke(vertx, server, clientOptions);
 
@@ -111,8 +119,10 @@ public class GenerationTest {
         Collection<CertificateFiles> files = new CertificateGenerator(tempDir, true).generate(request);
         Assertions.assertThat(files).hasSize(2);
 
-        KeyCertOptions serverOptions = new PfxOptions().setPath(new File(tempDir.toFile(), "test-keystore.jks").getAbsolutePath()).setPassword("password");
-        TrustOptions clientOptions = new PemTrustOptions().addCertPath(new File(tempDir.toFile(), "test-ca.crt").getAbsolutePath());
+        KeyCertOptions serverOptions = new PfxOptions()
+                .setPath(new File(tempDir.toFile(), "test-keystore.jks").getAbsolutePath()).setPassword("password");
+        TrustOptions clientOptions = new PemTrustOptions()
+                .addCertPath(new File(tempDir.toFile(), "test-ca.crt").getAbsolutePath());
         var server = VertxHttpHelper.createHttpServer(vertx, serverOptions);
         var response = VertxHttpHelper.createHttpClientAndInvoke(vertx, server, clientOptions);
 
@@ -132,14 +142,17 @@ public class GenerationTest {
         KeyCertOptions serverOptions = new PemKeyCertOptions()
                 .addKeyPath(new File(tempDir.toFile(), "test.key").getAbsolutePath())
                 .addCertPath(new File(tempDir.toFile(), "test.crt").getAbsolutePath());
-        PemTrustOptions serverTrustOptions = new PemTrustOptions().addCertPath(new File(tempDir.toFile(), "test-server-ca.crt").getAbsolutePath());
+        PemTrustOptions serverTrustOptions = new PemTrustOptions()
+                .addCertPath(new File(tempDir.toFile(), "test-server-ca.crt").getAbsolutePath());
 
         KeyCertOptions clientOptions = new PemKeyCertOptions()
                 .addKeyPath(new File(tempDir.toFile(), "test-client.key").getAbsolutePath())
                 .addCertPath(new File(tempDir.toFile(), "test-client.crt").getAbsolutePath());
-        TrustOptions clientTrustOptions = new PemTrustOptions().addCertPath(new File(tempDir.toFile(), "test-client-ca.crt").getAbsolutePath());
+        TrustOptions clientTrustOptions = new PemTrustOptions()
+                .addCertPath(new File(tempDir.toFile(), "test-client-ca.crt").getAbsolutePath());
         var server = VertxHttpHelper.createHttpServerWithMutualAuth(vertx, serverOptions, serverTrustOptions);
-        var response = VertxHttpHelper.createHttpClientWithMutualAuthAndInvoke(vertx, server, clientOptions, clientTrustOptions);
+        var response = VertxHttpHelper.createHttpClientWithMutualAuthAndInvoke(vertx, server, clientOptions,
+                clientTrustOptions);
 
         assertThat(response.statusCode()).isEqualTo(200);
     }
@@ -153,15 +166,23 @@ public class GenerationTest {
                 .withFormat(Format.JKS);
         new CertificateGenerator(tempDir, true).generate(request);
 
+        KeyCertOptions serverOptions = new JksOptions()
+                .setPath(new File(tempDir.toFile(), "test-keystore.jks").getAbsolutePath()).setPassword("secret")
+                .setAlias("test");
+        TrustOptions serverTrustOptions = new JksOptions()
+                .setPath(new File(tempDir.toFile(), "test-server-truststore.jks").getAbsolutePath()).setPassword("secret")
+                .setAlias("test");
 
-        KeyCertOptions serverOptions = new JksOptions().setPath(new File(tempDir.toFile(), "test-keystore.jks").getAbsolutePath()).setPassword("secret").setAlias("test");
-        TrustOptions serverTrustOptions = new JksOptions().setPath(new File(tempDir.toFile(), "test-server-truststore.jks").getAbsolutePath()).setPassword("secret").setAlias("test");
-
-        KeyCertOptions clientOptions = new JksOptions().setPath(new File(tempDir.toFile(), "test-client-keystore.jks").getAbsolutePath()).setPassword("secret").setAlias("test");
-        TrustOptions clientTrustOptions = new JksOptions().setPath(new File(tempDir.toFile(), "test-client-truststore.jks").getAbsolutePath()).setPassword("secret").setAlias("test");
+        KeyCertOptions clientOptions = new JksOptions()
+                .setPath(new File(tempDir.toFile(), "test-client-keystore.jks").getAbsolutePath()).setPassword("secret")
+                .setAlias("test");
+        TrustOptions clientTrustOptions = new JksOptions()
+                .setPath(new File(tempDir.toFile(), "test-client-truststore.jks").getAbsolutePath()).setPassword("secret")
+                .setAlias("test");
 
         var server = VertxHttpHelper.createHttpServerWithMutualAuth(vertx, serverOptions, serverTrustOptions);
-        var response = VertxHttpHelper.createHttpClientWithMutualAuthAndInvoke(vertx, server, clientOptions, clientTrustOptions);
+        var response = VertxHttpHelper.createHttpClientWithMutualAuthAndInvoke(vertx, server, clientOptions,
+                clientTrustOptions);
 
         assertThat(response.statusCode()).isEqualTo(200);
     }
@@ -175,15 +196,23 @@ public class GenerationTest {
                 .withFormat(Format.PKCS12);
         new CertificateGenerator(tempDir, true).generate(request);
 
+        KeyCertOptions serverOptions = new PfxOptions()
+                .setPath(new File(tempDir.toFile(), "test-keystore.p12").getAbsolutePath()).setPassword("secret")
+                .setAlias("test");
+        TrustOptions serverTrustOptions = new PfxOptions()
+                .setPath(new File(tempDir.toFile(), "test-server-truststore.p12").getAbsolutePath()).setPassword("secret")
+                .setAlias("test");
 
-        KeyCertOptions serverOptions = new PfxOptions().setPath(new File(tempDir.toFile(), "test-keystore.p12").getAbsolutePath()).setPassword("secret").setAlias("test");
-        TrustOptions serverTrustOptions = new PfxOptions().setPath(new File(tempDir.toFile(), "test-server-truststore.p12").getAbsolutePath()).setPassword("secret").setAlias("test");
-
-        KeyCertOptions clientOptions = new PfxOptions().setPath(new File(tempDir.toFile(), "test-client-keystore.p12").getAbsolutePath()).setPassword("secret").setAlias("test");
-        TrustOptions clientTrustOptions = new PfxOptions().setPath(new File(tempDir.toFile(), "test-client-truststore.p12").getAbsolutePath()).setPassword("secret").setAlias("test");
+        KeyCertOptions clientOptions = new PfxOptions()
+                .setPath(new File(tempDir.toFile(), "test-client-keystore.p12").getAbsolutePath()).setPassword("secret")
+                .setAlias("test");
+        TrustOptions clientTrustOptions = new PfxOptions()
+                .setPath(new File(tempDir.toFile(), "test-client-truststore.p12").getAbsolutePath()).setPassword("secret")
+                .setAlias("test");
 
         var server = VertxHttpHelper.createHttpServerWithMutualAuth(vertx, serverOptions, serverTrustOptions);
-        var response = VertxHttpHelper.createHttpClientWithMutualAuthAndInvoke(vertx, server, clientOptions, clientTrustOptions);
+        var response = VertxHttpHelper.createHttpClientWithMutualAuthAndInvoke(vertx, server, clientOptions,
+                clientTrustOptions);
 
         assertThat(response.statusCode()).isEqualTo(200);
     }
@@ -200,10 +229,12 @@ public class GenerationTest {
 
         File serverKeyStore = new File(tempDir.toFile(), "test-keystore.jks");
         assertThat(serverKeyStore).isFile();
-        KeyCertOptions serverOptions = new JksOptions().setPath(serverKeyStore.getAbsolutePath()).setPassword("secret").setAlias("test");
+        KeyCertOptions serverOptions = new JksOptions().setPath(serverKeyStore.getAbsolutePath()).setPassword("secret")
+                .setAlias("test");
         File serverTrustStore = new File(tempDir.toFile(), "test-server-truststore.jks");
         assertThat(serverTrustStore).isFile();
-        TrustOptions serverTrustOptions = new JksOptions().setPath(serverTrustStore.getAbsolutePath()).setPassword("secret").setAlias("test");
+        TrustOptions serverTrustOptions = new JksOptions().setPath(serverTrustStore.getAbsolutePath()).setPassword("secret")
+                .setAlias("test");
 
         File clientKey = new File(tempDir.toFile(), "test-client.key");
         assertThat(clientKey).isFile();
@@ -217,7 +248,8 @@ public class GenerationTest {
         TrustOptions clientTrustOptions = new PemTrustOptions().addCertPath(clientTrustStore.getAbsolutePath());
 
         var server = VertxHttpHelper.createHttpServerWithMutualAuth(vertx, serverOptions, serverTrustOptions);
-        var response = VertxHttpHelper.createHttpClientWithMutualAuthAndInvoke(vertx, server, clientOptions, clientTrustOptions);
+        var response = VertxHttpHelper.createHttpClientWithMutualAuthAndInvoke(vertx, server, clientOptions,
+                clientTrustOptions);
 
         assertThat(response.statusCode()).isEqualTo(200);
     }
@@ -234,10 +266,12 @@ public class GenerationTest {
 
         File serverKeyStore = new File(tempDir.toFile(), "test-keystore.p12");
         assertThat(serverKeyStore).isFile();
-        KeyCertOptions serverOptions = new PfxOptions().setPath(serverKeyStore.getAbsolutePath()).setPassword("secret").setAlias("test");
+        KeyCertOptions serverOptions = new PfxOptions().setPath(serverKeyStore.getAbsolutePath()).setPassword("secret")
+                .setAlias("test");
         File serverTrustStore = new File(tempDir.toFile(), "test-server-truststore.p12");
         assertThat(serverTrustStore).isFile();
-        TrustOptions serverTrustOptions = new PfxOptions().setPath(serverTrustStore.getAbsolutePath()).setPassword("secret").setAlias("test");
+        TrustOptions serverTrustOptions = new PfxOptions().setPath(serverTrustStore.getAbsolutePath()).setPassword("secret")
+                .setAlias("test");
 
         File clientKey = new File(tempDir.toFile(), "test-client.key");
         assertThat(clientKey).isFile();
@@ -251,7 +285,8 @@ public class GenerationTest {
         TrustOptions clientTrustOptions = new PemTrustOptions().addCertPath(clientTrustStore.getAbsolutePath());
 
         var server = VertxHttpHelper.createHttpServerWithMutualAuth(vertx, serverOptions, serverTrustOptions);
-        var response = VertxHttpHelper.createHttpClientWithMutualAuthAndInvoke(vertx, server, clientOptions, clientTrustOptions);
+        var response = VertxHttpHelper.createHttpClientWithMutualAuthAndInvoke(vertx, server, clientOptions,
+                clientTrustOptions);
 
         assertThat(response.statusCode()).isEqualTo(200);
     }
@@ -268,20 +303,24 @@ public class GenerationTest {
 
         File serverKeyStore = new File(tempDir.toFile(), "test-keystore.p12");
         assertThat(serverKeyStore).isFile();
-        KeyCertOptions serverOptions = new PfxOptions().setPath(serverKeyStore.getAbsolutePath()).setPassword("secret").setAlias("test");
+        KeyCertOptions serverOptions = new PfxOptions().setPath(serverKeyStore.getAbsolutePath()).setPassword("secret")
+                .setAlias("test");
         File serverTrustStore = new File(tempDir.toFile(), "test-server-truststore.p12");
         assertThat(serverTrustStore).isFile();
-        TrustOptions serverTrustOptions = new PfxOptions().setPath(serverTrustStore.getAbsolutePath()).setPassword("secret").setAlias("test");
+        TrustOptions serverTrustOptions = new PfxOptions().setPath(serverTrustStore.getAbsolutePath()).setPassword("secret")
+                .setAlias("test");
 
         File clientKey = new File(tempDir.toFile(), "test-client-keystore.jks");
         assertThat(clientKey).isFile();
         File clientCert = new File(tempDir.toFile(), "test-client-truststore.jks");
         assertThat(clientCert).isFile();
         JksOptions clientOptions = new JksOptions().setPath(clientKey.getAbsolutePath()).setPassword("secret").setAlias("test");
-        JksOptions clientTrustOptions = new JksOptions().setPath(clientCert.getAbsolutePath()).setPassword("secret").setAlias("test");
+        JksOptions clientTrustOptions = new JksOptions().setPath(clientCert.getAbsolutePath()).setPassword("secret")
+                .setAlias("test");
 
         var server = VertxHttpHelper.createHttpServerWithMutualAuth(vertx, serverOptions, serverTrustOptions);
-        var response = VertxHttpHelper.createHttpClientWithMutualAuthAndInvoke(vertx, server, clientOptions, clientTrustOptions);
+        var response = VertxHttpHelper.createHttpClientWithMutualAuthAndInvoke(vertx, server, clientOptions,
+                clientTrustOptions);
 
         assertThat(response.statusCode()).isEqualTo(200);
     }
@@ -302,25 +341,31 @@ public class GenerationTest {
         p12ServerKeyStore.load(new FileInputStream(new File(tempDir.toFile(), "test-keystore.p12")), "secret".toCharArray());
 
         KeyStore p12ServerTruststore = KeyStore.getInstance("PKCS12");
-        p12ServerTruststore.load(new FileInputStream(new File(tempDir.toFile(), "test-server-truststore.p12")), "secret".toCharArray());
+        p12ServerTruststore.load(new FileInputStream(new File(tempDir.toFile(), "test-server-truststore.p12")),
+                "secret".toCharArray());
 
         KeyStore p12ClientKeyStore = KeyStore.getInstance("PKCS12");
-        p12ClientKeyStore.load(new FileInputStream(new File(tempDir.toFile(), "test-client-keystore.p12")), "secret".toCharArray());
+        p12ClientKeyStore.load(new FileInputStream(new File(tempDir.toFile(), "test-client-keystore.p12")),
+                "secret".toCharArray());
 
         KeyStore p12ClientTrustStore = KeyStore.getInstance("PKCS12");
-        p12ClientTrustStore.load(new FileInputStream(new File(tempDir.toFile(), "test-client-truststore.p12")), "secret".toCharArray());
+        p12ClientTrustStore.load(new FileInputStream(new File(tempDir.toFile(), "test-client-truststore.p12")),
+                "secret".toCharArray());
 
         KeyStore jksServerKeyStore = KeyStore.getInstance("JKS");
         jksServerKeyStore.load(new FileInputStream(new File(tempDir.toFile(), "test-keystore.jks")), "secret".toCharArray());
 
         KeyStore jksServerTruststore = KeyStore.getInstance("JKS");
-        jksServerTruststore.load(new FileInputStream(new File(tempDir.toFile(), "test-server-truststore.jks")), "secret".toCharArray());
+        jksServerTruststore.load(new FileInputStream(new File(tempDir.toFile(), "test-server-truststore.jks")),
+                "secret".toCharArray());
 
         KeyStore jksClientKeyStore = KeyStore.getInstance("JKS");
-        jksClientKeyStore.load(new FileInputStream(new File(tempDir.toFile(), "test-client-keystore.jks")), "secret".toCharArray());
+        jksClientKeyStore.load(new FileInputStream(new File(tempDir.toFile(), "test-client-keystore.jks")),
+                "secret".toCharArray());
 
         KeyStore jksClientTrustStore = KeyStore.getInstance("JKS");
-        jksClientTrustStore.load(new FileInputStream(new File(tempDir.toFile(), "test-client-truststore.jks")), "secret".toCharArray());
+        jksClientTrustStore.load(new FileInputStream(new File(tempDir.toFile(), "test-client-truststore.jks")),
+                "secret".toCharArray());
 
         // JKS client cert should be verified using the P12 server truststore
         jksClientKeyStore.getCertificate("test").verify(p12ServerTruststore.getCertificate("test").getPublicKey());

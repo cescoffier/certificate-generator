@@ -23,7 +23,8 @@ public class CertificateHolder {
     /**
      * Generates a new instance of {@link CertificateHolder}, with a new random key pair and a certificate.
      */
-    public CertificateHolder(String cn, List<String> sans, Duration duration, boolean generateClient, String password, CertificateRequest.Issuer issuer) throws Exception {
+    public CertificateHolder(String cn, List<String> sans, Duration duration, boolean generateClient, String password,
+            CertificateRequest.Issuer issuer) throws Exception {
         KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
         keyPairGenerator.initialize(2048);
 

@@ -1,16 +1,15 @@
 package io.smallrye.certs;
 
-import org.junit.jupiter.api.Test;
-import org.junitpioneer.jupiter.resource.Dir;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.nio.file.Path;
 import java.security.KeyStore;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
+import org.junitpioneer.jupiter.resource.Dir;
 
 public class GeneratedKeyStoreTest {
-
 
     @Test
     void verifyIfJKSKeyStoreSupportAliasPassword(@Dir Path dir) throws Exception {
@@ -23,7 +22,6 @@ public class GeneratedKeyStoreTest {
 
         CertificateGenerator generator = new CertificateGenerator(dir, true);
         generator.generate(request);
-
 
         KeyStore ks = KeyStore.getInstance("JKS");
         File jks = new File(dir.toFile(), "jks-alias-verif-keystore.jks");
@@ -58,7 +56,6 @@ public class GeneratedKeyStoreTest {
         CertificateGenerator generator = new CertificateGenerator(dir, true);
         generator.generate(request);
 
-
         KeyStore ks = KeyStore.getInstance("PKCS12");
         File jks = new File(dir.toFile(), "p12-alias-verif-keystore.p12");
         try (var fis = new java.io.FileInputStream(jks)) {
@@ -78,7 +75,6 @@ public class GeneratedKeyStoreTest {
         assertThat(ks.getKey("p12-alias-verif", "secret".toCharArray())).isNotNull();
         assertThat(ks.getKey("alias1", "password-alias1".toCharArray())).isNotNull();
         assertThat(ks.getKey("alias2", null)).isNotNull();
-
 
     }
 

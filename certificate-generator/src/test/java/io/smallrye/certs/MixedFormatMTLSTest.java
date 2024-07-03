@@ -34,15 +34,9 @@ public class MixedFormatMTLSTest {
 
         List<Arguments> list = new ArrayList<>();
         List<Format> formats = List.of(Format.JKS, Format.PKCS12, Format.PEM);
-        formats.forEach(serverKeystoreFormat ->
-                formats.forEach(serverTruststoreFormat ->
-                        formats.forEach(clientKeystoreFormat ->
-                                formats.forEach(clientTruststoreFormat ->
-                                        list.add(Arguments.of(serverKeystoreFormat, serverTruststoreFormat, clientKeystoreFormat, clientTruststoreFormat))
-                                )
-                        )
-                )
-        );
+        formats.forEach(serverKeystoreFormat -> formats.forEach(serverTruststoreFormat -> formats
+                .forEach(clientKeystoreFormat -> formats.forEach(clientTruststoreFormat -> list.add(Arguments
+                        .of(serverKeystoreFormat, serverTruststoreFormat, clientKeystoreFormat, clientTruststoreFormat))))));
 
         return list.stream();
     }
@@ -50,7 +44,7 @@ public class MixedFormatMTLSTest {
     @ParameterizedTest
     @MethodSource
     public void testMixingKeystoreAndTruststoreFormat(Format serverKeystoreFormat, Format serverTruststoreFormat,
-                                                      Format clientKeystoreFormat, Format clientTrustoreFormat) throws Exception {
+            Format clientKeystoreFormat, Format clientTrustoreFormat) throws Exception {
         generate();
 
         KeyCertOptions serverKS = switch (serverKeystoreFormat) {
@@ -99,11 +93,9 @@ public class MixedFormatMTLSTest {
                     .setPassword("password");
         };
 
-
         var server = VertxHttpHelper.createHttpServerWithMutualAuth(vertx, serverKS, serverTS);
         var response = VertxHttpHelper.createHttpClientWithMutualAuthAndInvoke(vertx, server, clientKS, clientTS);
         assertThat(response.statusCode()).isEqualTo(200);
-
 
     }
 
@@ -120,6 +112,5 @@ public class MixedFormatMTLSTest {
         CertificateGenerator generator = new CertificateGenerator(new File("target/certs").toPath(), false);
         generator.generate(request);
     }
-
 
 }

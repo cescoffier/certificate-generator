@@ -9,7 +9,7 @@ import org.junit.jupiter.params.provider.ArgumentsSource;
 
 import io.smallrye.certs.Format;
 
-@Target({ElementType.ANNOTATION_TYPE, ElementType.METHOD})
+@Target({ ElementType.ANNOTATION_TYPE, ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)
 @ArgumentsSource(CertificateFilesArgumentsProvider.class)
 public @interface CertificatesSource {

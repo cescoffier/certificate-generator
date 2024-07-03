@@ -9,6 +9,7 @@
     </parent>
 
     <artifactId>smallrye-certificate-generator-maven-plugin</artifactId>
+    <name>SmallRye Certificate Generator - Maven Plugin</name>
     <packaging>maven-plugin</packaging>
 
     <dependencies>

@@ -1,13 +1,6 @@
 package io.smallrye.certs.ca;
 
-import io.smallrye.certs.CertificateGenerator;
-import io.smallrye.certs.CertificateRequest;
-import io.smallrye.certs.CertificateUtils;
-import io.smallrye.certs.Format;
-import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
-import org.bouncycastle.openssl.PEMParser;
-import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
-import org.junit.jupiter.api.Test;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -19,7 +12,14 @@ import java.security.PrivateKey;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
+import org.bouncycastle.openssl.PEMParser;
+import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
+import org.junit.jupiter.api.Test;
+
+import io.smallrye.certs.CertificateGenerator;
+import io.smallrye.certs.CertificateRequest;
+import io.smallrye.certs.Format;
 
 /**
  * Generate a CA certificate (without the installation) and generate a signed certificate.
@@ -45,10 +45,10 @@ public class GenerateCaTest {
         generator.generateTrustStore(trustStore);
         assertThat(trustStore).exists();
 
-
         // Generate a signed certificate
         CertificateGenerator gen = new CertificateGenerator(out.toPath(), true);
-        gen.generate(new CertificateRequest().withName("test").signedWith(loadRootCertificate(ca), loadPrivateKey(key)).withFormat(Format.PKCS12).withPassword("secret"));
+        gen.generate(new CertificateRequest().withName("test").signedWith(loadRootCertificate(ca), loadPrivateKey(key))
+                .withFormat(Format.PKCS12).withPassword("secret"));
 
         File signedKS = new File(out, "test-keystore.p12");
         File signedTS = new File(out, "test-truststore.p12");
@@ -82,7 +82,7 @@ public class GenerateCaTest {
 
     private PrivateKey loadPrivateKey(File key) throws Exception {
         try (BufferedReader reader = new BufferedReader(new FileReader(key));
-             PEMParser pemParser = new PEMParser(reader)) {
+                PEMParser pemParser = new PEMParser(reader)) {
             Object obj = pemParser.readObject();
             if (obj instanceof KeyPair) {
                 return ((KeyPair) obj).getPrivate();

@@ -14,15 +14,27 @@
 
     <packaging>pom</packaging>
 
-    <name>Certificate Generator Parent</name>
+    <name>SmallRye Certificate Generator Parent</name>
     <description>An API and Maven plugin to generate TLS certificates</description>
     <url>https://github.com/cescoffier/certificate-generator</url>
     <licenses>
         <license>
             <name>Apache License 2.0</name>
-            <url>http://www.apache.org/licenses/LICENSE-2.0</url>
+            <url>https://www.apache.org/licenses/LICENSE-2.0</url>
         </license>
     </licenses>
+    <issueManagement>
+        <system>GitHub</system>
+        <url>https://github.com/smallrye/smallrye-certificate-generator/issues</url>
+    </issueManagement>
+    <inceptionYear>2024</inceptionYear>
+
+    <scm>
+        <connection>scm:git:git@github.com:smallrye/smallrye-certificate-generator.git</connection>
+        <developerConnection>scm:git:git@github.com:smallrye/smallrye-certificate-generator.git</developerConnection>
+        <url>https://github.com/smallrye/smallrye-certificate-generator/</url>
+        <tag>HEAD</tag>
+    </scm>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -121,112 +133,26 @@
     <build>
         <plugins>
             <plugin>
-                <groupId>org.sonatype.plugins</groupId>
-                <artifactId>nexus-staging-maven-plugin</artifactId>
-                <version>1.6.13</version>
-                <extensions>true</extensions>
+                <groupId>net.revelc.code</groupId>
+                <artifactId>impsort-maven-plugin</artifactId>
+                <version>1.11.0</version>
                 <configuration>
-                    <serverId>ossrh</serverId>
-                    <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-                    <autoReleaseAfterClose>true</autoReleaseAfterClose>
-                    <keepStagingRepositoryOnFailure>true</keepStagingRepositoryOnFailure>
-                    <keepStagingRepositoryOnCloseRuleFailure>true</keepStagingRepositoryOnCloseRuleFailure>
+                    <skip>true</skip>
                 </configuration>
             </plugin>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-release-plugin</artifactId>
-                <version>3.0.1</version>
-                <configuration>
-                    <autoVersionSubmodules>true</autoVersionSubmodules>
-                    <useReleaseProfile>false</useReleaseProfile>
-                    <releaseProfiles>release</releaseProfiles>
-                    <goals>deploy</goals>
-                </configuration>
+                <groupId>io.smallrye</groupId>
+                <artifactId>jandex-maven-plugin</artifactId>
+                <version>3.2.0</version>
+                <executions>
+                    <execution>
+                        <id>make-index</id>
+                        <goals>
+                            <goal>jandex</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
-
-
-    <profiles>
-        <profile>
-            <id>release</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-source-plugin</artifactId>
-                        <version>3.0.0</version>
-                        <executions>
-                            <execution>
-                                <id>attach-sources</id>
-                                <goals>
-                                    <goal>jar-no-fork</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-javadoc-plugin</artifactId>
-                        <version>3.4.1</version>
-                        <executions>
-                            <execution>
-                                <id>attach-javadocs</id>
-                                <goals>
-                                    <goal>jar</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                        <configuration>
-                            <additionalOptions>
-                                <additionalOption>
-                                    --snippet-path=${basedir}/src/test/java
-                                </additionalOption>
-                            </additionalOptions>
-                        </configuration>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-gpg-plugin</artifactId>
-                        <version>3.0.1</version>
-                        <executions>
-                            <execution>
-                                <id>sign-artifacts</id>
-                                <phase>verify</phase>
-                                <goals>
-                                    <goal>sign</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
-    <scm>
-        <url>https://github.com/cescoffier/certificate-generator</url>
-        <connection>https://github.com/cescoffier/certificate-generator.git</connection>
-        <developerConnection>scm:git:https://github.com/cescoffier/certificate-generator.git</developerConnection>
-        <tag>HEAD</tag>
-    </scm>
-
-    <inceptionYear>2022</inceptionYear>
-    <issueManagement>
-        <system>github</system>
-        <url>https://github.com/cescoffier/certificate-generator/issues</url>
-    </issueManagement>
-    <organization>
-        <name>escoffier.me</name>
-        <url>http://escoffier.me</url>
-    </organization>
-    <developers>
-        <developer>
-            <id>cescoffier</id>
-            <name>Clement Escoffier</name>
-            <email>clement[AT]apache[DOT]org</email>
-            <url>https://github.com/cescoffier</url>
-        </developer>
-    </developers>
-
 </project>

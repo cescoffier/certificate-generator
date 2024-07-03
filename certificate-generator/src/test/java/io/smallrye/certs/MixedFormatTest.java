@@ -41,8 +41,7 @@ public class MixedFormatTest {
                 Arguments.of(Format.PKCS12, Format.PEM),
                 Arguments.of(Format.PEM, Format.PEM),
                 Arguments.of(Format.PEM, Format.JKS),
-                Arguments.of(Format.PEM, Format.PKCS12)
-        );
+                Arguments.of(Format.PEM, Format.PKCS12));
     }
 
     @ParameterizedTest
@@ -94,13 +93,11 @@ public class MixedFormatTest {
         HttpClientResponse response = VertxHttpHelper.createHttpClientAndInvoke(vertx, server, trustOptions);
         assertThat(response.statusCode()).isEqualTo(200);
 
-
-
     }
 
     private void generate() throws Exception {
         File target = new File("target/certs");
-        if (! target.isDirectory()) {
+        if (!target.isDirectory()) {
             target.mkdirs();
         }
         CertificateRequest request = new CertificateRequest()
@@ -110,7 +107,5 @@ public class MixedFormatTest {
         CertificateGenerator generator = new CertificateGenerator(new File("target/certs").toPath(), false);
         generator.generate(request);
     }
-
-
 
 }

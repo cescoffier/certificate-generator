@@ -68,7 +68,8 @@ public class CertificateGenerationExtension implements BeforeAllCallback, Parame
     }
 
     @Override
-    public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext extensionContext) throws ParameterResolutionException {
+    public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext extensionContext)
+            throws ParameterResolutionException {
         if (extensionContext.getRequiredTestMethod().isAnnotationPresent(CertificatesSource.class)) {
             return false;
         }
@@ -85,7 +86,8 @@ public class CertificateGenerationExtension implements BeforeAllCallback, Parame
     }
 
     @Override
-    public Object resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext) throws ParameterResolutionException {
+    public Object resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext)
+            throws ParameterResolutionException {
         if (parameterContext.getParameter().getParameterizedType() instanceof ParameterizedType type) {
             if (((Class<?>) type.getRawType()).isAssignableFrom(List.class)) {
                 Type argument = type.getActualTypeArguments()[0];

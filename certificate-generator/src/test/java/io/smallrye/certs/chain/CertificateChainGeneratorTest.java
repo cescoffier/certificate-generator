@@ -1,21 +1,23 @@
 package io.smallrye.certs.chain;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+import java.io.File;
+
+import javax.net.ssl.SSLHandshakeException;
+
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
+import io.smallrye.certs.VertxHttpHelper;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.net.PemKeyCertOptions;
 import io.vertx.core.net.PemTrustOptions;
 import io.vertx.core.net.TrustOptions;
-import io.smallrye.certs.VertxHttpHelper;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-
-import javax.net.ssl.SSLHandshakeException;
-import java.io.File;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class CertificateChainGeneratorTest {
 
@@ -30,7 +32,6 @@ class CertificateChainGeneratorTest {
     static void closeVertx() {
         vertx.close().toCompletionStage().toCompletableFuture().join();
     }
-
 
     @Test
     void testGenerateCertificateChainGeneration() throws Exception {
@@ -102,7 +103,6 @@ class CertificateChainGeneratorTest {
         File intermediateKey = new File(dir, "intermediate.key");
         File rootCertificate = new File(dir, "root.crt");
 
-
         PemKeyCertOptions serverKS = new PemKeyCertOptions()
                 .setKeyPath(intermediateKey.getAbsolutePath())
                 .setCertPath(intermediateCertificate.getAbsolutePath());
@@ -112,7 +112,7 @@ class CertificateChainGeneratorTest {
 
         HttpServer server = VertxHttpHelper.createHttpServer(vertx, serverKS);
         assertThatThrownBy(() -> VertxHttpHelper.createHttpClientAndInvoke(vertx, server, clientTS))
-        .hasCauseInstanceOf(SSLHandshakeException.class); // The intermediate is trusted BUT the cn does not match
+                .hasCauseInstanceOf(SSLHandshakeException.class); // The intermediate is trusted BUT the cn does not match
 
         var response = VertxHttpHelper.createHttpClientAndInvoke(vertx, server, clientTS, false);
         assertThat(response.statusCode()).isEqualTo(200);

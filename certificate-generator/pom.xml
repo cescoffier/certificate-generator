@@ -9,6 +9,7 @@
     </parent>
 
     <artifactId>smallrye-certificate-generator</artifactId>
+    <name>SmallRye Certificate Generator</name>
 
     <dependencies>
         <dependency>

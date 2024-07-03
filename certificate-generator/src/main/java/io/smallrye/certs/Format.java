@@ -4,7 +4,9 @@ package io.smallrye.certs;
  * The format of certificates.
  */
 public enum Format {
-    PEM, JKS, PKCS12;
+    PEM,
+    JKS,
+    PKCS12;
 
     String extension() {
         return switch (this) {

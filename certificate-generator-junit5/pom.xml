@@ -11,7 +11,7 @@
     <artifactId>smallrye-certificate-generator-junit5</artifactId>
 
 
-    <name>Certificate Generator - Junit5 Extension</name>
+    <name>SmallRye Certificate Generator - Junit5 Extension</name>
     <description>A Junit5 extension to generate certificates</description>
 
     <dependencies>

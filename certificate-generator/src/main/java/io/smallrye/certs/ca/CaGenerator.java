@@ -1,17 +1,10 @@
 package io.smallrye.certs.ca;
 
-import io.smallrye.common.os.OS;
-import org.bouncycastle.asn1.ASN1Sequence;
-import org.bouncycastle.asn1.x500.X500Name;
-import org.bouncycastle.asn1.x509.BasicConstraints;
-import org.bouncycastle.asn1.x509.Extension;
-import org.bouncycastle.asn1.x509.KeyUsage;
-import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
-import org.bouncycastle.cert.X509v3CertificateBuilder;
-import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
-import org.bouncycastle.cert.jcajce.JcaX509ExtensionUtils;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+import static io.smallrye.certs.ca.LinuxCAInstaller.installCAOnLinux;
+import static io.smallrye.certs.ca.MacCAInstaller.installCAOnMac;
+import static io.smallrye.certs.ca.WindowsCAInstaller.installCAOnWindows;
+import static java.lang.System.Logger.Level.INFO;
+import static java.lang.System.Logger.Level.WARNING;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -27,16 +20,23 @@ import java.util.Base64;
 import java.util.Date;
 import java.util.Set;
 
-import static io.smallrye.certs.ca.LinuxCAInstaller.installCAOnLinux;
-import static io.smallrye.certs.ca.MacCAInstaller.installCAOnMac;
-import static io.smallrye.certs.ca.WindowsCAInstaller.installCAOnWindows;
-import static java.lang.System.Logger.Level.INFO;
-import static java.lang.System.Logger.Level.WARNING;
+import org.bouncycastle.asn1.ASN1Sequence;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x509.BasicConstraints;
+import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.asn1.x509.KeyUsage;
+import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
+import org.bouncycastle.cert.X509v3CertificateBuilder;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
+import org.bouncycastle.cert.jcajce.JcaX509ExtensionUtils;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+
+import io.smallrye.common.os.OS;
 
 public class CaGenerator {
 
     static System.Logger LOGGER = System.getLogger(CaGenerator.class.getName());
-
 
     public static final String KEYSTORE_KEY_ENTRY = "key";
     public static final String KEYSTORE_CERT_ENTRY = "ca";
@@ -51,9 +51,9 @@ public class CaGenerator {
      * Create a new instance of {@link CaGenerator}.
      * <p>
      *
-     * @param ca       the file where the CA certificate should be stored (PEM file), must not be null
-     * @param key      the file where the private key should be stored (PEM file), must not be null
-     * @param ks       the file where the keystore should be stored (P12 file), must not be null
+     * @param ca the file where the CA certificate should be stored (PEM file), must not be null
+     * @param key the file where the private key should be stored (PEM file), must not be null
+     * @param ks the file where the keystore should be stored (P12 file), must not be null
      * @param password the password to protect the keystore, and the private key, must not be null or empty
      */
     public CaGenerator(File ca, File key, File ks, String password) {
@@ -64,23 +64,24 @@ public class CaGenerator {
         this.password = password;
     }
 
-
     /**
      * Generate a Root CA certificate and store it in a keystore.
      * <p>
-     * This method writes the CA certificate to a PEM file, the private key to a PEM file, and the key and cert to a PKCS12 keystore.
+     * This method writes the CA certificate to a PEM file, the private key to a PEM file, and the key and cert to a PKCS12
+     * keystore.
      * It also returns the {@code X509Certificate} instance.
      *
-     * @param cn       the common name of the certificate, must not be null
-     * @param org      the organization, can be null, must not be empty
-     * @param unit     the organizational unit, can be null, must not be empty
+     * @param cn the common name of the certificate, must not be null
+     * @param org the organization, can be null, must not be empty
+     * @param unit the organizational unit, can be null, must not be empty
      * @param location the location, can be null, must not be empty
-     * @param state    the state, can be null, must not be empty
+     * @param state the state, can be null, must not be empty
      * @param country, the country, can be null, must not be empty
      * @return the generated CA certificate
      * @throws Exception if the generation fails
      */
-    public X509Certificate generate(String cn, String org, String unit, String location, String state, String country) throws Exception {
+    public X509Certificate generate(String cn, String org, String unit, String location, String state, String country)
+            throws Exception {
         String issuerText = "CN=" + cn;
         if (org != null) {
             issuerText += ",O=" + org;
@@ -116,19 +117,20 @@ public class CaGenerator {
                 yesterday,
                 oneYear,
                 subject,
-                keyInfo
-        );
+                keyInfo);
 
         builder.addExtension(Extension.keyUsage, true, new KeyUsage(KeyUsage.keyCertSign));
         builder.addExtension(Extension.basicConstraints, true, new BasicConstraints(0)); // CA + Path Length
-        builder.addExtension(Extension.subjectKeyIdentifier, false, new JcaX509ExtensionUtils().createSubjectKeyIdentifier(keyPair.getPublic()));
+        builder.addExtension(Extension.subjectKeyIdentifier, false,
+                new JcaX509ExtensionUtils().createSubjectKeyIdentifier(keyPair.getPublic()));
 
         JcaContentSignerBuilder contentSignerBuilder = new JcaContentSignerBuilder("SHA256WithRSAEncryption");
-        var cert = new JcaX509CertificateConverter().getCertificate(builder.build(contentSignerBuilder.build(keyPair.getPrivate())));
+        var cert = new JcaX509CertificateConverter()
+                .getCertificate(builder.build(contentSignerBuilder.build(keyPair.getPrivate())));
 
         // Save the Root CA certificate to a pem file
         try (FileWriter fileWriter = new FileWriter(ca);
-             BufferedWriter pemWriter = new BufferedWriter(fileWriter)) {
+                BufferedWriter pemWriter = new BufferedWriter(fileWriter)) {
             pemWriter.write("-----BEGIN CERTIFICATE-----\n");
             pemWriter.write(Base64.getEncoder().encodeToString(cert.getEncoded()));
             pemWriter.write("\n-----END CERTIFICATE-----\n\n");
@@ -136,7 +138,7 @@ public class CaGenerator {
         }
 
         try (FileWriter fileWriter = new FileWriter(key);
-             BufferedWriter pemWriter = new BufferedWriter(fileWriter)) {
+                BufferedWriter pemWriter = new BufferedWriter(fileWriter)) {
             pemWriter.write("-----BEGIN PRIVATE KEY-----\n");
             pemWriter.write(Base64.getEncoder().encodeToString(keyPair.getPrivate().getEncoded()));
             pemWriter.write("\n-----END PRIVATE KEY-----\n\n");
@@ -145,7 +147,8 @@ public class CaGenerator {
         // Store the key and cert in a P12 keystore
         KeyStore keyStore = KeyStore.getInstance("PKCS12");
         keyStore.load(null, null);
-        keyStore.setKeyEntry(KEYSTORE_KEY_ENTRY, keyPair.getPrivate(), password.toCharArray(), new java.security.cert.Certificate[]{cert});
+        keyStore.setKeyEntry(KEYSTORE_KEY_ENTRY, keyPair.getPrivate(), password.toCharArray(),
+                new java.security.cert.Certificate[] { cert });
         keyStore.setCertificateEntry(KEYSTORE_CERT_ENTRY, cert);
         keyStore.store(new FileOutputStream(ks), password.toCharArray());
 
@@ -213,6 +216,5 @@ public class CaGenerator {
         }
 
     }
-
 
 }

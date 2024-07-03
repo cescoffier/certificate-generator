@@ -17,7 +17,6 @@ import java.util.List;
 @Mojo(name = "generate", defaultPhase = LifecyclePhase.GENERATE_TEST_RESOURCES, threadSafe = true, requiresProject = true)
 public class CertificatesGeneratorMojo extends AbstractMojo {
 
-
     @Parameter(required = true)
     private List<CertificateRequestParameter> certificates;
 
@@ -73,7 +72,6 @@ public class CertificatesGeneratorMojo extends AbstractMojo {
 
                 generator.generate(cr);
             }
-
 
         } catch (Exception e) {
             throw new MojoExecutionException("Unable to generate certificates", e);

@@ -22,7 +22,8 @@ public class CertificateRequestParameter {
     @Parameter
     private List<String> subjectAlternativeNames;
 
-    @Parameter List<io.smallrye.certs.maven.AliasParameter> aliases;
+    @Parameter
+    List<io.smallrye.certs.maven.AliasParameter> aliases;
 
     public String getName() {
         return name;

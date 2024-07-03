@@ -1,12 +1,12 @@
 package io.smallrye.certs.ca;
 
-import com.dd.plist.*;
+import static java.lang.System.Logger.Level.DEBUG;
+import static java.lang.System.Logger.Level.INFO;
 
 import java.io.File;
 import java.nio.file.Files;
 
-import static java.lang.System.Logger.Level.DEBUG;
-import static java.lang.System.Logger.Level.INFO;
+import com.dd.plist.*;
 
 /**
  * Utility class to install the CA certificate on a Mac.
@@ -15,10 +15,12 @@ public class MacCAInstaller {
 
     static System.Logger LOGGER = System.getLogger(CaGenerator.class.getName());
 
-
     public static void installCAOnMac(String cn, File ca) throws Exception {
-        LOGGER.log(INFO, "🔥 Installing CA certificate (issuer: {0}) into your operating system keychain. Your admin password may be asked.", cn);
-        ProcessBuilder pb = new ProcessBuilder("sudo", "security", "-v", "add-trusted-cert", "-d", "-r", "trustRoot", "-k", "/Library/Keychains/System.keychain", ca.getAbsolutePath());
+        LOGGER.log(INFO,
+                "🔥 Installing CA certificate (issuer: {0}) into your operating system keychain. Your admin password may be asked.",
+                cn);
+        ProcessBuilder pb = new ProcessBuilder("sudo", "security", "-v", "add-trusted-cert", "-d", "-r", "trustRoot", "-k",
+                "/Library/Keychains/System.keychain", ca.getAbsolutePath());
         pb.inheritIO();
         pb.start().waitFor();
         LOGGER.log(DEBUG, "\t Certificate added to the keychain");
@@ -46,7 +48,7 @@ public class MacCAInstaller {
 
     private static void updateCertificateTrustSettings(String cn, File plist) throws Exception {
         var content = Files.readString(plist.toPath());
-        NSDictionary main  = (NSDictionary) PropertyListParser.parse(content.getBytes());
+        NSDictionary main = (NSDictionary) PropertyListParser.parse(content.getBytes());
         NSDictionary certs = (NSDictionary) main.get("trustList");
 
         boolean found = false;
@@ -62,29 +64,29 @@ public class MacCAInstaller {
                 found = true;
                 /*
                  * <dict>
-					<key>kSecTrustSettingsAllowedError</key>
-					<integer>-2147408896</integer>
-					<key>kSecTrustSettingsPolicy</key>
-					<data>
-					KoZIhvdjZAED
-					</data>
-					<key>kSecTrustSettingsPolicyName</key>
-					<string>sslServer</string>
-					<key>kSecTrustSettingsResult</key>
-					<integer>2</integer>
-				</dict>
-				<dict>
-					<key>kSecTrustSettingsAllowedError</key>
-					<integer>-2147409654</integer>
-					<key>kSecTrustSettingsPolicy</key>
-					<data>
-					KoZIhvdjZAEC
-					</data>
-					<key>kSecTrustSettingsPolicyName</key>
-					<string>basicX509</string>
-					<key>kSecTrustSettingsResult</key>
-					<integer>2</integer>
-				</dict>
+                 * <key>kSecTrustSettingsAllowedError</key>
+                 * <integer>-2147408896</integer>
+                 * <key>kSecTrustSettingsPolicy</key>
+                 * <data>
+                 * KoZIhvdjZAED
+                 * </data>
+                 * <key>kSecTrustSettingsPolicyName</key>
+                 * <string>sslServer</string>
+                 * <key>kSecTrustSettingsResult</key>
+                 * <integer>2</integer>
+                 * </dict>
+                 * <dict>
+                 * <key>kSecTrustSettingsAllowedError</key>
+                 * <integer>-2147409654</integer>
+                 * <key>kSecTrustSettingsPolicy</key>
+                 * <data>
+                 * KoZIhvdjZAEC
+                 * </data>
+                 * <key>kSecTrustSettingsPolicyName</key>
+                 * <string>basicX509</string>
+                 * <key>kSecTrustSettingsResult</key>
+                 * <integer>2</integer>
+                 * </dict>
                  */
                 NSArray settings = new NSArray(2);
                 NSDictionary dict0 = new NSDictionary();
@@ -103,7 +105,7 @@ public class MacCAInstaller {
                 value.put("trustSettings", settings);
             }
         }
-        if (! found)  {
+        if (!found) {
             LOGGER.log(INFO, "\uD83D\uDEAB CA certificate not found in plist");
         }
         Files.writeString(plist.toPath(), main.toXMLPropertyList());

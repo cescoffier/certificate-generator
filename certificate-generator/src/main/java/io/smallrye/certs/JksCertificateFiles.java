@@ -52,7 +52,7 @@ public final class JksCertificateFiles implements CertificateFiles {
 
     @Override
     public Path trustStore() {
-        return client ? serverTrustStoreFile: trustStoreFile;
+        return client ? serverTrustStoreFile : trustStoreFile;
     }
 
     @Override

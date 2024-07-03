@@ -1,6 +1,15 @@
 package io.smallrye.certs.chain;
 
-import io.smallrye.certs.CertificateUtils;
+import java.io.File;
+import java.math.BigInteger;
+import java.security.*;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
+import java.util.List;
+
 import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.DERSequence;
@@ -16,15 +25,7 @@ import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 
-import java.io.File;
-import java.math.BigInteger;
-import java.security.*;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.Date;
-import java.util.List;
+import io.smallrye.certs.CertificateUtils;
 
 public class CertificateChainGenerator {
 
@@ -99,7 +100,8 @@ public class CertificateChainGenerator {
         return keyPairGenerator.generateKeyPair();
     }
 
-    private X509Certificate generateRootCertificate(KeyPair rootKeyPair) throws CertIOException, NoSuchAlgorithmException, OperatorCreationException, CertificateException {
+    private X509Certificate generateRootCertificate(KeyPair rootKeyPair)
+            throws CertIOException, NoSuchAlgorithmException, OperatorCreationException, CertificateException {
         var keyInfo = SubjectPublicKeyInfo.getInstance(ASN1Sequence.getInstance(rootKeyPair.getPublic().getEncoded()));
         var issuer = new X500Name("CN=quarkus-root,O=Quarkus Development");
         var subject = new X500Name("CN=root");
@@ -115,7 +117,8 @@ public class CertificateChainGenerator {
 
         certGen.addExtension(Extension.keyUsage, true, new KeyUsage(KeyUsage.keyCertSign));
         certGen.addExtension(Extension.basicConstraints, true, new BasicConstraints(true));
-        certGen.addExtension(Extension.subjectKeyIdentifier, false, new JcaX509ExtensionUtils().createSubjectKeyIdentifier(rootKeyPair.getPublic()));
+        certGen.addExtension(Extension.subjectKeyIdentifier, false,
+                new JcaX509ExtensionUtils().createSubjectKeyIdentifier(rootKeyPair.getPublic()));
 
         JcaContentSignerBuilder contentSignerBuilder = new JcaContentSignerBuilder("SHA256WithRSAEncryption");
         ContentSigner signer = contentSignerBuilder.build(rootKeyPair.getPrivate());
@@ -123,7 +126,9 @@ public class CertificateChainGenerator {
         return new JcaX509CertificateConverter().getCertificate(holder);
     }
 
-    private X509Certificate generateIntermediaryCertificate(KeyPair intermediaryKeyPair, KeyPair rootKeyPair, X509Certificate rootCertificate) throws NoSuchAlgorithmException, CertIOException, OperatorCreationException, CertificateException {
+    private X509Certificate generateIntermediaryCertificate(KeyPair intermediaryKeyPair, KeyPair rootKeyPair,
+            X509Certificate rootCertificate)
+            throws NoSuchAlgorithmException, CertIOException, OperatorCreationException, CertificateException {
         var keyInfo = SubjectPublicKeyInfo.getInstance(ASN1Sequence.getInstance(intermediaryKeyPair.getPublic().getEncoded()));
         var yesterday = new Date(System.currentTimeMillis() - 86400000);
         var oneYear = new Date(System.currentTimeMillis() + 365L * 24 * 60 * 60 * 1000); // 1 year
@@ -133,19 +138,21 @@ public class CertificateChainGenerator {
                 yesterday,
                 oneYear,
                 new X500Name("CN=intermediary"),
-                keyInfo
-        );
+                keyInfo);
 
         certGen.addExtension(Extension.keyUsage, true, new KeyUsage(KeyUsage.keyCertSign | KeyUsage.digitalSignature));
         certGen.addExtension(Extension.basicConstraints, true, new BasicConstraints(true));
-        certGen.addExtension(Extension.subjectKeyIdentifier, false, new JcaX509ExtensionUtils().createSubjectKeyIdentifier(intermediaryKeyPair.getPublic()));
+        certGen.addExtension(Extension.subjectKeyIdentifier, false,
+                new JcaX509ExtensionUtils().createSubjectKeyIdentifier(intermediaryKeyPair.getPublic()));
 
         JcaContentSignerBuilder contentSignerBuilder = new JcaContentSignerBuilder("SHA256WithRSAEncryption");
         ContentSigner contentSigner = contentSignerBuilder.build(rootKeyPair.getPrivate());
         return new JcaX509CertificateConverter().getCertificate(certGen.build(contentSigner));
     }
 
-    private X509Certificate generateLeafCertificate(KeyPair leafKeyPair, KeyPair intermediaryKeyPair, X509Certificate intermediaryCertificate) throws NoSuchAlgorithmException, CertIOException, OperatorCreationException, CertificateException {
+    private X509Certificate generateLeafCertificate(KeyPair leafKeyPair, KeyPair intermediaryKeyPair,
+            X509Certificate intermediaryCertificate)
+            throws NoSuchAlgorithmException, CertIOException, OperatorCreationException, CertificateException {
         var keyInfo = SubjectPublicKeyInfo.getInstance(ASN1Sequence.getInstance(leafKeyPair.getPublic().getEncoded()));
         var before = Instant.now().minus(2, ChronoUnit.DAYS);
         var after = Instant.now().plus(2, ChronoUnit.DAYS);
@@ -156,29 +163,28 @@ public class CertificateChainGenerator {
                 new java.util.Date(before.toEpochMilli()),
                 new java.util.Date(after.toEpochMilli()),
                 new X500Name("CN=" + cn),
-                keyInfo
-        );
+                keyInfo);
 
         certGen.addExtension(Extension.keyUsage, true,
-                new KeyUsage(KeyUsage.digitalSignature | KeyUsage.keyEncipherment | KeyUsage.dataEncipherment | KeyUsage.keyAgreement | KeyUsage.nonRepudiation));
-        certGen.addExtension(Extension.subjectKeyIdentifier, false, new JcaX509ExtensionUtils().createSubjectKeyIdentifier(leafKeyPair.getPublic()));
+                new KeyUsage(KeyUsage.digitalSignature | KeyUsage.keyEncipherment | KeyUsage.dataEncipherment
+                        | KeyUsage.keyAgreement | KeyUsage.nonRepudiation));
+        certGen.addExtension(Extension.subjectKeyIdentifier, false,
+                new JcaX509ExtensionUtils().createSubjectKeyIdentifier(leafKeyPair.getPublic()));
 
-        DERSequence subjectAlternativeNames =
-                new DERSequence(sans.stream().map(s -> {
-                    if (s.startsWith("DNS:")) {
-                        return new GeneralName(GeneralName.dNSName, s.substring(4));
-                    } else if (s.startsWith("IP:")) {
-                        return new GeneralName(GeneralName.iPAddress, s.substring(3));
-                    } else {
-                        return new GeneralName(GeneralName.dNSName, s);
-                    }
-                }).toArray(ASN1Encodable[]::new));
+        DERSequence subjectAlternativeNames = new DERSequence(sans.stream().map(s -> {
+            if (s.startsWith("DNS:")) {
+                return new GeneralName(GeneralName.dNSName, s.substring(4));
+            } else if (s.startsWith("IP:")) {
+                return new GeneralName(GeneralName.iPAddress, s.substring(3));
+            } else {
+                return new GeneralName(GeneralName.dNSName, s);
+            }
+        }).toArray(ASN1Encodable[]::new));
         certGen.addExtension(Extension.subjectAlternativeName, false, subjectAlternativeNames);
 
         JcaContentSignerBuilder contentSignerBuilder = new JcaContentSignerBuilder("SHA256WithRSAEncryption");
         ContentSigner contentSigner = contentSignerBuilder.build(intermediaryKeyPair.getPrivate());
         return new JcaX509CertificateConverter().getCertificate(certGen.build(contentSigner));
     }
-
 
 }

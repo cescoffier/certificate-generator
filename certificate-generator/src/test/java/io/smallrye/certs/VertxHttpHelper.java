@@ -21,23 +21,25 @@ public class VertxHttpHelper {
         return createHttpClientAndInvoke(vertx, server, options, true);
     }
 
-    public static HttpClientResponse createHttpClientAndInvoke(Vertx vertx, HttpServer server, TrustOptions options, boolean verifyHost) {
+    public static HttpClientResponse createHttpClientAndInvoke(Vertx vertx, HttpServer server, TrustOptions options,
+            boolean verifyHost) {
 
         if (options == null) {
             return vertx.createHttpClient(new HttpClientOptions()
-                            .setSsl(true).setDefaultHost("localhost").setDefaultPort(server.actualPort()).setVerifyHost(verifyHost)
-                    )
-                    .request(HttpMethod.GET, "/").flatMap(HttpClientRequest::send).toCompletionStage().toCompletableFuture().join();
+                    .setSsl(true).setDefaultHost("localhost").setDefaultPort(server.actualPort()).setVerifyHost(verifyHost))
+                    .request(HttpMethod.GET, "/").flatMap(HttpClientRequest::send).toCompletionStage().toCompletableFuture()
+                    .join();
         }
 
         return vertx.createHttpClient(new HttpClientOptions()
-                        .setSsl(true).setDefaultHost("localhost").setDefaultPort(server.actualPort())
-                        .setTrustOptions(options)
-                        .setVerifyHost(verifyHost))
+                .setSsl(true).setDefaultHost("localhost").setDefaultPort(server.actualPort())
+                .setTrustOptions(options)
+                .setVerifyHost(verifyHost))
                 .request(HttpMethod.GET, "/").flatMap(HttpClientRequest::send).toCompletionStage().toCompletableFuture().join();
     }
 
-    public static HttpServer createHttpServerWithMutualAuth(Vertx vertx, KeyCertOptions serverOptions, TrustOptions trustOptions) {
+    public static HttpServer createHttpServerWithMutualAuth(Vertx vertx, KeyCertOptions serverOptions,
+            TrustOptions trustOptions) {
         HttpServerOptions options = new HttpServerOptions()
                 .setSsl(true)
                 .setKeyCertOptions(serverOptions)
@@ -50,7 +52,8 @@ public class VertxHttpHelper {
                 .toCompletionStage().toCompletableFuture().join();
     }
 
-    static HttpClientResponse createHttpClientWithMutualAuthAndInvoke(Vertx vertx, HttpServer server, KeyCertOptions clientOptions, TrustOptions trustOptions) {
+    static HttpClientResponse createHttpClientWithMutualAuthAndInvoke(Vertx vertx, HttpServer server,
+            KeyCertOptions clientOptions, TrustOptions trustOptions) {
         HttpClientOptions localhost = new HttpClientOptions()
                 .setSsl(true).setDefaultHost("localhost").setDefaultPort(server.actualPort())
                 .setTrustOptions(trustOptions)

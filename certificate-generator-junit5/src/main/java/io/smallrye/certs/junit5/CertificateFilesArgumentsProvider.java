@@ -11,7 +11,8 @@ import io.smallrye.certs.CertificateFiles;
 
 public class CertificateFilesArgumentsProvider extends AnnotationBasedArgumentsProvider<CertificatesSource> {
     @Override
-    protected Stream<? extends Arguments> provideArguments(ExtensionContext extensionContext, CertificatesSource certificatesSource) {
+    protected Stream<? extends Arguments> provideArguments(ExtensionContext extensionContext,
+            CertificatesSource certificatesSource) {
         CertificateGenerationExtension extension = CertificateGenerationExtension.getInstance(extensionContext);
         Stream<CertificateFiles> stream = extension.certificateFiles.stream();
         if (certificatesSource.names().length > 0) {

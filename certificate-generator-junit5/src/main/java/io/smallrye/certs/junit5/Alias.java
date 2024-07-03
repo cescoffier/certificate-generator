@@ -1,7 +1,5 @@
 package io.smallrye.certs.junit5;
 
-
-
 public @interface Alias {
 
     /**
@@ -26,7 +24,7 @@ public @interface Alias {
 
     /**
      * Sets the subject alternative names of the certificate.
-     * Must follow the format "DNS:example.com", or  "IP:127.0.0.1".
+     * Must follow the format "DNS:example.com", or "IP:127.0.0.1".
      */
     String[] subjectAlternativeNames() default {};
 

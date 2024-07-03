@@ -103,7 +103,6 @@ public final class CertificateRequest {
         return name;
     }
 
-
     public String getPassword() {
         return password;
     }
@@ -125,7 +124,7 @@ public final class CertificateRequest {
     }
 
     public boolean isSelfSigned() {
-        return ! signed;
+        return !signed;
     }
 
     public Issuer issuer() {

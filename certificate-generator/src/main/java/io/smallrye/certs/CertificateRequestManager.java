@@ -1,5 +1,7 @@
 package io.smallrye.certs;
 
+import static io.smallrye.certs.CertificateUtils.writeTruststoreToPem;
+
 import java.io.File;
 import java.nio.file.Path;
 import java.security.KeyPair;
@@ -8,8 +10,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static io.smallrye.certs.CertificateUtils.writeTruststoreToPem;
 
 public class CertificateRequestManager {
 
@@ -30,7 +30,8 @@ public class CertificateRequestManager {
         this.request = request;
         this.name = request.name();
         holders.put(request.name(),
-                new CertificateHolder(request.getCN(), request.getSubjectAlternativeNames(), request.getDuration(), request.hasClient(), request.getPassword(), request.issuer()));
+                new CertificateHolder(request.getCN(), request.getSubjectAlternativeNames(), request.getDuration(),
+                        request.hasClient(), request.getPassword(), request.issuer()));
 
         for (String alias : request.aliases().keySet()) {
             AliasRequest nested = request.aliases().get(alias);
@@ -40,7 +41,8 @@ public class CertificateRequestManager {
                 cn = request.getCN();
             }
             holders.put(alias,
-                    new CertificateHolder(cn, nested.getSubjectAlternativeNames(), request.getDuration(), nested.hasClient(), nested.getPassword(), request.issuer()));
+                    new CertificateHolder(cn, nested.getSubjectAlternativeNames(), request.getDuration(), nested.hasClient(),
+                            nested.getPassword(), request.issuer()));
         }
     }
 
@@ -72,7 +74,8 @@ public class CertificateRequestManager {
         }
         if (replaceIfExists || !files.trustStoreFile().toFile().isFile()) {
             // Client truststore.
-            CertificateUtils.writeClientTrustStoreToJKS(holders, files.trustStoreFile().toFile(), request.getPassword().toCharArray());
+            CertificateUtils.writeClientTrustStoreToJKS(holders, files.trustStoreFile().toFile(),
+                    request.getPassword().toCharArray());
         }
 
         Map<String, CertificateHolder> clients = new HashMap<>();
@@ -82,12 +85,14 @@ public class CertificateRequestManager {
             }
         }
 
-        if (! clients.isEmpty()) {
+        if (!clients.isEmpty()) {
             if (replaceIfExists || !files.clientKeyStoreFile().toFile().isFile()) {
-                CertificateUtils.writeClientPrivateKeyAndCertificateToJKS(holders, request.getPassword(), files.clientKeyStoreFile().toFile());
+                CertificateUtils.writeClientPrivateKeyAndCertificateToJKS(holders, request.getPassword(),
+                        files.clientKeyStoreFile().toFile());
             }
             if (replaceIfExists || !files.serverTrustStoreFile().toFile().isFile()) {
-                CertificateUtils.writeServerTrustStoreToJKS(holders, files.serverTrustStoreFile().toFile(), request.getPassword().toCharArray());
+                CertificateUtils.writeServerTrustStoreToJKS(holders, files.serverTrustStoreFile().toFile(),
+                        request.getPassword().toCharArray());
             }
         }
 
@@ -97,14 +102,15 @@ public class CertificateRequestManager {
     private CertificateFiles generatePkcs12Certificates(Path root, boolean replaceIfExists) throws Exception {
         Pkcs12CertificateFiles files = new Pkcs12CertificateFiles(root, name, request.hasClient(), request.getPassword());
 
-
         // Server key store - contains the server private keys and certificates.
         if (replaceIfExists || !files.keyStoreFile().toFile().isFile()) {
-            CertificateUtils.writePrivateKeyAndCertificateToPKCS12(holders, files.keyStoreFile().toFile(), request.getPassword().toCharArray());
+            CertificateUtils.writePrivateKeyAndCertificateToPKCS12(holders, files.keyStoreFile().toFile(),
+                    request.getPassword().toCharArray());
         }
         // Client trust store - contains the server certificates.
         if (replaceIfExists || !files.trustStoreFile().toFile().isFile()) {
-            CertificateUtils.writeClientTrustStoreToPKCS12(holders, files.trustStoreFile().toFile(), request.getPassword().toCharArray());
+            CertificateUtils.writeClientTrustStoreToPKCS12(holders, files.trustStoreFile().toFile(),
+                    request.getPassword().toCharArray());
         }
 
         Map<String, CertificateHolder> clients = new HashMap<>();
@@ -115,12 +121,14 @@ public class CertificateRequestManager {
         }
 
         // We are in a mTLS configuration, we need to generate the client key store and the server trust store.
-        if (! clients.isEmpty()) {
+        if (!clients.isEmpty()) {
             if (replaceIfExists || !files.clientKeyStoreFile().toFile().isFile()) {
-                CertificateUtils.writeClientPrivateKeyAndCertificateToPKCS12(holders, files.clientKeyStoreFile().toFile(), request.getPassword().toCharArray());
+                CertificateUtils.writeClientPrivateKeyAndCertificateToPKCS12(holders, files.clientKeyStoreFile().toFile(),
+                        request.getPassword().toCharArray());
             }
             if (replaceIfExists || !files.serverTrustStoreFile().toFile().isFile()) {
-                CertificateUtils.writeServerTrustStoreToPKCS12(holders, files.serverTrustStoreFile().toFile(), request.getPassword().toCharArray());
+                CertificateUtils.writeServerTrustStoreToPKCS12(holders, files.serverTrustStoreFile().toFile(),
+                        request.getPassword().toCharArray());
             }
         }
 
@@ -139,7 +147,8 @@ public class CertificateRequestManager {
         return files;
     }
 
-    private CertificateFiles writePem(String name, CertificateHolder holder, Path root, boolean replaceIfExists) throws Exception {
+    private CertificateFiles writePem(String name, CertificateHolder holder, Path root, boolean replaceIfExists)
+            throws Exception {
         PemCertificateFiles files = new PemCertificateFiles(root, name, holder.hasClient());
 
         X509Certificate serverCert = holder.certificate();

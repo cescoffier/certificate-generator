@@ -1,10 +1,10 @@
 package io.smallrye.certs.ca;
 
+import static java.lang.System.Logger.Level.*;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-
-import static java.lang.System.Logger.Level.*;
 
 /**
  * A utility to install the CA certificate on Linux.
@@ -17,7 +17,6 @@ import static java.lang.System.Logger.Level.*;
 public class LinuxCAInstaller {
     static System.Logger LOGGER = System.getLogger(CaGenerator.class.getName());
 
-
     private static final String FEDORA_LOCATION = "/etc/pki/ca-trust/source/anchors/";
     private static final String FEDORA_FILENAME = "/etc/pki/ca-trust/source/anchors/%s.pem";
     private static final List<String> FEDORA_COMMAND = List.of("sudo", "update-ca-trust", "extract");
@@ -29,9 +28,10 @@ public class LinuxCAInstaller {
     private static final String SUSE_FILENAME = "/usr/share/pki/trust/anchors/%s.pem";
     private static final List<String> SUSE_COMMAND = List.of("sudo", "update-ca-certificates");
 
-
     public static void installCAOnLinux(String cn, File ca) throws Exception {
-        LOGGER.log(INFO, "🔥 Installing the CA certificate (issuer: {0}) into your operating system keychain. Your admin password may be asked.", cn);
+        LOGGER.log(INFO,
+                "🔥 Installing the CA certificate (issuer: {0}) into your operating system keychain. Your admin password may be asked.",
+                cn);
 
         String certName = ca.getName().substring(0, ca.getName().lastIndexOf('.'));
         if (new File(FEDORA_LOCATION).isDirectory()) {
@@ -47,14 +47,17 @@ public class LinuxCAInstaller {
             copy(ca, new File(filename));
             run(SUSE_COMMAND);
         } else {
-            LOGGER.log(ERROR, "❌ Unsupported Linux distribution, please install the CA certificate ({0}) manually", ca.getAbsolutePath());
+            LOGGER.log(ERROR, "❌ Unsupported Linux distribution, please install the CA certificate ({0}) manually",
+                    ca.getAbsolutePath());
         }
 
-        LOGGER.log(WARNING, "❗️ Please restart your browser to take the changes into account. Some browser requires the certificate to be manually imported. " +
-                "Please refer to the browser documentation, and import the certificate located at {0}", ca.getAbsolutePath());
+        LOGGER.log(WARNING,
+                "❗️ Please restart your browser to take the changes into account. Some browser requires the certificate to be manually imported. "
+                        +
+                        "Please refer to the browser documentation, and import the certificate located at {0}",
+                ca.getAbsolutePath());
 
     }
-
 
     private static void run(List<String> command) throws IOException, InterruptedException {
         LOGGER.log(DEBUG, "\t Executing command {0}", String.join(" ", command));

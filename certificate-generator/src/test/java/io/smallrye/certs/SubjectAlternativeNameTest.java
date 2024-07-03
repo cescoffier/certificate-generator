@@ -1,13 +1,13 @@
 package io.smallrye.certs;
 
-import org.junit.jupiter.api.Test;
-import org.junitpioneer.jupiter.resource.Dir;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.nio.file.Path;
 import java.security.KeyStore;
 import java.security.cert.X509Certificate;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
+import org.junitpioneer.jupiter.resource.Dir;
 
 public class SubjectAlternativeNameTest {
 
