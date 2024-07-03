@@ -29,7 +29,7 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: 11
+          java-version: 17
           server-id: 'oss.sonatype'
           server-username: 'MAVEN_DEPLOY_USERNAME'
           server-password: 'MAVEN_DEPLOY_TOKEN'
@@ -50,7 +50,7 @@ jobs:
           git config --global user.name "SmallRye CI"
           git config --global user.email "smallrye@googlegroups.com"
           git checkout -b release
-          mvn -B release:prepare -Prelease,coverage -DreleaseVersion=${{steps.metadata.outputs.current-version}} -DdevelopmentVersion=${{steps.metadata.outputs.next-version}}
+          mvn -B release:prepare -Prelease -DreleaseVersion=${{steps.metadata.outputs.current-version}} -DdevelopmentVersion=${{steps.metadata.outputs.next-version}}
           git checkout ${{github.base_ref}}
           git rebase release
           mvn -B release:perform -Prelease
