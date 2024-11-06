@@ -86,7 +86,7 @@
                 <groupId>org.junit.jupiter</groupId>
                 <artifactId>junit-jupiter</artifactId>
                 <scope>compile</scope>
-                <version>5.10.2</version>
+                <version>5.11.3</version>
             </dependency>
 
 
