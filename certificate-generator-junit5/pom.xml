@@ -5,7 +5,7 @@
     <parent>
         <groupId>io.smallrye.certs</groupId>
         <artifactId>smallrye-certificate-generator-parent</artifactId>
-        <version>0.8.2-SNAPSHOT</version>
+        <version>0.9.0</version>
     </parent>
 
     <artifactId>smallrye-certificate-generator-junit5</artifactId>
