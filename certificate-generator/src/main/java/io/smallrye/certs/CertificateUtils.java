@@ -14,11 +14,13 @@ import java.security.KeyPair;
 import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.security.SecureRandom;
 import java.security.Security;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.security.spec.PKCS8EncodedKeySpec;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -27,6 +29,12 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import javax.crypto.Cipher;
+import javax.crypto.EncryptedPrivateKeyInfo;
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
+import javax.crypto.spec.PBEParameterSpec;
 import javax.security.auth.x500.X500Principal;
 
 import org.bouncycastle.asn1.ASN1Encodable;
@@ -188,12 +196,46 @@ public class CertificateUtils {
         }
     }
 
-    public static void writePrivateKeyToPem(PrivateKey privateKey, File output) throws Exception {
+    // Define PBE parameters
+    private static final String PBE_ALGORITHM = "PBEWithSHA1AndDESede";
+    private static final int ITERATION_COUNT = 2048;
+    private static final int SALT_SIZE = 8; // 8 bytes of salt
+
+    private static byte[] generateSalt() {
+        byte[] salt = new byte[SALT_SIZE];
+        SecureRandom random = new SecureRandom();
+        random.nextBytes(salt);
+        return salt;
+    }
+
+    public static void writePrivateKeyToPem(PrivateKey privateKey, String password, File output) throws Exception {
+
+        byte[] content = privateKey.getEncoded();
+        ;
+        if (password != null) {
+            byte[] salt = generateSalt();
+            PBEKeySpec pbeKeySpec = new PBEKeySpec(password.toCharArray());
+            SecretKeyFactory keyFactory = SecretKeyFactory.getInstance(PBE_ALGORITHM);
+            SecretKey secretKey = keyFactory.generateSecret(pbeKeySpec);
+            Cipher cipher = Cipher.getInstance(PBE_ALGORITHM);
+            PBEParameterSpec pbeParamSpec = new PBEParameterSpec(salt, ITERATION_COUNT);
+            cipher.init(Cipher.ENCRYPT_MODE, secretKey, pbeParamSpec);
+
+            // Encode the private key in PKCS#8 format
+            PKCS8EncodedKeySpec pkcs8EncodedKeySpec = new PKCS8EncodedKeySpec(privateKey.getEncoded());
+            byte[] encryptedKeyBytes = cipher.doFinal(pkcs8EncodedKeySpec.getEncoded());
+
+            // Wrap encrypted data in EncryptedPrivateKeyInfo
+            EncryptedPrivateKeyInfo encryptedPrivateKeyInfo = new EncryptedPrivateKeyInfo(cipher.getParameters(),
+                    encryptedKeyBytes);
+            content = encryptedPrivateKeyInfo.getEncoded();
+        }
+
         try (FileWriter fileWriter = new FileWriter(output);
                 BufferedWriter pemWriter = new BufferedWriter(fileWriter)) {
-            pemWriter.write("-----BEGIN PRIVATE KEY-----\n");
-            pemWriter.write(Base64.getEncoder().encodeToString(privateKey.getEncoded()));
-            pemWriter.write("\n-----END PRIVATE KEY-----\n\n");
+            pemWriter.write("-----BEGIN " + (password != null ? "ENCRYPTED " : "") + "PRIVATE KEY-----\n");
+            pemWriter.write(Base64.getEncoder().encodeToString(content));
+            pemWriter.write("\n-----END " + (password != null ? "ENCRYPTED " : "") + "PRIVATE KEY-----\n\n");
         }
     }
 

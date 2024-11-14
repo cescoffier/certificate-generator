@@ -49,6 +49,7 @@
         <module>certificate-generator</module>
         <module>certificate-generator-maven-plugin</module>
         <module>certificate-generator-junit5</module>
+        <module>private-key-pem-parser</module>
     </modules>
 
     <dependencyManagement>
