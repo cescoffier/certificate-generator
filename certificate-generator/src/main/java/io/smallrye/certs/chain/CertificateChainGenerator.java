@@ -85,13 +85,13 @@ public class CertificateChainGenerator {
         // Write the certificates to files
         // root.crt, root.key, intermediary.crt, intermediary.key, cn.crt, cn.key
         CertificateUtils.writeCertificateToPEM(rootCertificate, new File(baseDir, "root.crt"));
-        CertificateUtils.writePrivateKeyToPem(rootKeyPair.getPrivate(), new File(baseDir, "root.key"));
+        CertificateUtils.writePrivateKeyToPem(rootKeyPair.getPrivate(), null, new File(baseDir, "root.key"));
 
         CertificateUtils.writeCertificateToPEM(intermediaryCertificate, new File(baseDir, "intermediate.crt"));
-        CertificateUtils.writePrivateKeyToPem(intermediaryKeyPair.getPrivate(), new File(baseDir, "intermediate.key"));
+        CertificateUtils.writePrivateKeyToPem(intermediaryKeyPair.getPrivate(), null, new File(baseDir, "intermediate.key"));
 
         CertificateUtils.writeCertificateToPEM(leafCertificate, new File(baseDir, cn + ".crt"), intermediaryCertificate);
-        CertificateUtils.writePrivateKeyToPem(leafKeyPair.getPrivate(), new File(baseDir, cn + ".key"));
+        CertificateUtils.writePrivateKeyToPem(leafKeyPair.getPrivate(), null, new File(baseDir, cn + ".key"));
     }
 
     private KeyPair generateKeyPair() throws NoSuchAlgorithmException, NoSuchProviderException {

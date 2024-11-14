@@ -1,6 +1,8 @@
 package io.smallrye.certs;
 
+import io.smallrye.certs.pem.parsers.EncryptedPKCS8Parser;
 import io.vertx.core.Vertx;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.net.*;
@@ -11,6 +13,8 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -44,6 +48,12 @@ public class MixedFormatTest {
                 Arguments.of(Format.PEM, Format.PKCS12));
     }
 
+    private static Buffer decrypt(File pem, String password) throws IOException {
+        var content = Files.readString(pem.toPath());
+        var parser = new EncryptedPKCS8Parser();
+        return parser.decryptKey(content, password);
+    }
+
     @ParameterizedTest
     @MethodSource
     public void testMixingKeystoreAndTruststoreFormat(Format keystoreFormat, Format truststoreFormat) throws Exception {
@@ -51,10 +61,18 @@ public class MixedFormatTest {
 
         HttpServer server = switch (keystoreFormat) {
             case PEM -> {
-                KeyCertOptions options = new PemKeyCertOptions()
-                        .addKeyPath("target/certs/test-mixed.key")
-                        .addCertPath("target/certs/test-mixed.crt");
-                yield VertxHttpHelper.createHttpServer(vertx, options);
+                var buffer = decrypt(new File("target/certs/test-mixed.key"), "password");
+                if (buffer != null) {
+                    KeyCertOptions options = new PemKeyCertOptions()
+                            .addKeyValue(buffer)
+                            .addCertPath("target/certs/test-mixed.crt");
+                    yield VertxHttpHelper.createHttpServer(vertx, options);
+                } else {
+                    KeyCertOptions options = new PemKeyCertOptions()
+                            .addKeyPath("target/certs/test-mixed.key")
+                            .addCertPath("target/certs/test-mixed.crt");
+                    yield VertxHttpHelper.createHttpServer(vertx, options);
+                }
             }
             case JKS -> {
                 KeyCertOptions options = new JksOptions()

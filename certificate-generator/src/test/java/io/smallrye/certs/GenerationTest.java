@@ -4,10 +4,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.KeyStore;
 import java.util.Collection;
 
+import io.smallrye.certs.pem.parsers.EncryptedPKCS8Parser;
+import io.vertx.core.buffer.Buffer;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -67,6 +71,36 @@ public class GenerationTest {
         var response = VertxHttpHelper.createHttpClientAndInvoke(vertx, server, clientOptions);
 
         assertThat(response.statusCode()).isEqualTo(200);
+    }
+
+    @Test
+    void PEMGenerationWithEncryptedPrivateKey(@Dir Path tempDir) throws Exception {
+        CertificateRequest request = new CertificateRequest()
+                .withName("test")
+                .withFormat(Format.PEM)
+                .withPassword("secret");
+        Collection<CertificateFiles> files = new CertificateGenerator(tempDir, true).generate(request);
+        Assertions.assertThat(files).hasSize(1);
+        assertThat(files.stream().findFirst().get()).isInstanceOf(PemCertificateFiles.class);
+
+        // We need to translate the PEM file.
+        Buffer buffer = decrypt(new File(tempDir.toFile(), "test.key"), "secret");
+
+        KeyCertOptions serverOptions = new PemKeyCertOptions()
+                .addKeyValue(buffer)
+                .addCertPath(new File(tempDir.toFile(), "test.crt").getAbsolutePath());
+        TrustOptions clientOptions = new PemTrustOptions()
+                .addCertPath(new File(tempDir.toFile(), "test-ca.crt").getAbsolutePath());
+        var server = VertxHttpHelper.createHttpServer(vertx, serverOptions);
+        var response = VertxHttpHelper.createHttpClientAndInvoke(vertx, server, clientOptions);
+
+        assertThat(response.statusCode()).isEqualTo(200);
+    }
+
+    private static Buffer decrypt(File pem, String password) throws IOException {
+        var content = Files.readString(pem.toPath());
+        var parser = new EncryptedPKCS8Parser();
+        return parser.decryptKey(content, password);
     }
 
     @Test
@@ -240,8 +274,11 @@ public class GenerationTest {
         assertThat(clientKey).isFile();
         File clientCert = new File(tempDir.toFile(), "test-client.crt");
         assertThat(clientCert).isFile();
+
+        Buffer buffer = decrypt(new File(tempDir.toFile(), "test-client.key"), "secret");
+
         KeyCertOptions clientOptions = new PemKeyCertOptions()
-                .addKeyPath(clientKey.getAbsolutePath())
+                .addKeyValue(buffer)
                 .addCertPath(clientCert.getAbsolutePath());
         File clientTrustStore = new File(tempDir.toFile(), "test-client-ca.crt");
         assertThat(clientTrustStore).isFile();
@@ -277,8 +314,11 @@ public class GenerationTest {
         assertThat(clientKey).isFile();
         File clientCert = new File(tempDir.toFile(), "test-client.crt");
         assertThat(clientCert).isFile();
+
+        Buffer buffer = decrypt(new File(tempDir.toFile(), "test-client.key"), "secret");
+
         KeyCertOptions clientOptions = new PemKeyCertOptions()
-                .addKeyPath(clientKey.getAbsolutePath())
+                .addKeyValue(buffer)
                 .addCertPath(clientCert.getAbsolutePath());
         File clientTrustStore = new File(tempDir.toFile(), "test-client-ca.crt");
         assertThat(clientTrustStore).isFile();

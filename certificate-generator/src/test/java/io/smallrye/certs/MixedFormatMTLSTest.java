@@ -1,6 +1,8 @@
 package io.smallrye.certs;
 
+import io.smallrye.certs.pem.parsers.EncryptedPKCS8Parser;
 import io.vertx.core.Vertx;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.net.*;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -9,6 +11,8 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
@@ -41,6 +45,12 @@ public class MixedFormatMTLSTest {
         return list.stream();
     }
 
+    private static Buffer decrypt(File pem, String password) throws IOException {
+        var content = Files.readString(pem.toPath());
+        var parser = new EncryptedPKCS8Parser();
+        return parser.decryptKey(content, password);
+    }
+
     @ParameterizedTest
     @MethodSource
     public void testMixingKeystoreAndTruststoreFormat(Format serverKeystoreFormat, Format serverTruststoreFormat,
@@ -48,9 +58,18 @@ public class MixedFormatMTLSTest {
         generate();
 
         KeyCertOptions serverKS = switch (serverKeystoreFormat) {
-            case PEM -> new PemKeyCertOptions()
-                    .addKeyPath("target/certs/test-mixed-mtls.key")
-                    .addCertPath("target/certs/test-mixed-mtls.crt");
+            case PEM -> {
+                Buffer buffer = decrypt(new File("target/certs/test-mixed-mtls.key"), "password");
+                if (buffer != null) {
+                    yield new PemKeyCertOptions()
+                            .addKeyValue(buffer)
+                            .addCertPath("target/certs/test-mixed-mtls.crt");
+                } else {
+                    yield new PemKeyCertOptions()
+                            .addKeyPath("target/certs/test-mixed-mtls.key")
+                            .addCertPath("target/certs/test-mixed-mtls.crt");
+                }
+            }
             case JKS -> new JksOptions()
                     .setPath("target/certs/test-mixed-mtls-keystore.jks")
                     .setPassword("password");
@@ -60,9 +79,18 @@ public class MixedFormatMTLSTest {
         };
 
         KeyCertOptions clientKS = switch (clientKeystoreFormat) {
-            case PEM -> new PemKeyCertOptions()
-                    .addKeyPath("target/certs/test-mixed-mtls-client.key")
-                    .addCertPath("target/certs/test-mixed-mtls-client.crt");
+            case PEM -> {
+                Buffer buffer = decrypt(new File("target/certs/test-mixed-mtls-client.key"), "password");
+                if (buffer != null) {
+                    yield new PemKeyCertOptions()
+                            .addKeyValue(buffer)
+                            .addCertPath("target/certs/test-mixed-mtls-client.crt");
+                } else {
+                    yield new PemKeyCertOptions()
+                            .addKeyPath("target/certs/test-mixed-mtls-client.key")
+                            .addCertPath("target/certs/test-mixed-mtls-client.crt");
+                }
+            }
             case JKS -> new JksOptions()
                     .setPath("target/certs/test-mixed-mtls-client-keystore.jks")
                     .setPassword("password");

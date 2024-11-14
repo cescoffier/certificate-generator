@@ -167,7 +167,7 @@ public class CertificateRequestManager {
             CertificateUtils.writeCertificateToPEM(serverCert, certFile);
         }
         if (replaceIfExists || !keyFile.isFile()) {
-            CertificateUtils.writePrivateKeyToPem(serverKey.getPrivate(), keyFile);
+            CertificateUtils.writePrivateKeyToPem(serverKey.getPrivate(), request.getPassword(), keyFile);
         }
         if (replaceIfExists || !clientTrustFile.isFile()) {
             writeTruststoreToPem(List.of(serverCert), clientTrustFile);
@@ -178,7 +178,7 @@ public class CertificateRequestManager {
                 CertificateUtils.writeCertificateToPEM(clientCert, clientCertFile);
             }
             if (replaceIfExists || !clientKeyFile.isFile()) {
-                CertificateUtils.writePrivateKeyToPem(clientKey.getPrivate(), clientKeyFile);
+                CertificateUtils.writePrivateKeyToPem(clientKey.getPrivate(), request.getPassword(), clientKeyFile);
             }
             if (replaceIfExists || !serverTrustfile.isFile()) {
                 writeTruststoreToPem(List.of(clientCert), serverTrustfile);
